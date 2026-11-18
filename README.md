@@ -40,6 +40,8 @@ Spusť `python build.py`. Skript sestaví instalační ZIP, ZIP repozitáře a i
 
 Prošlo 162 stávajících kontrol filmového doplňku a 34 kontrol instalátoru a automatických aktualizací. Kontroly zahrnují odložení za přehrávání, opakování po chybě, obnovu předchozích souborů, Windows cesty delší než 260 znaků a pozdní potvrzení změny vzhledu. Obsah ZIPu, kontrolní součty a veřejné stažení jsou kontrolované při zveřejnění.
 
-V odděleném Kodi 21.3 na PC byla dokončena výchozí instalace 1.8.0 s Arctic Fuse 3 verze 3.5.4 a filmovým doplňkem 0.9.14. Ověření přechodu na 1.8.1 z veřejného repozitáře probíhá při zveřejnění. Osobní seznamy a přehrávání používají vlastní účty připojené v cílovém Kodi.
+V odděleném Kodi 21.3 na PC byla dokončena výchozí instalace 1.8.0 s Arctic Fuse 3 verze 3.5.4 a filmovým doplňkem 0.9.14. Při nativní kontrole veřejného repozitáře Kodi automaticky stáhlo 1.8.1. Za pozastaveného místního testovacího videa zůstaly úpravy čekat. Po ukončení videa se samy použily soubory vzhledu 1.8.1 a filmový doplněk 0.9.15.
+
+Byla ověřena shoda všech 30 souborů filmového doplňku, osmi definic nabídek a okna hledání s vydaným balíčkem. Po restartu Kodi služba opět běžela a již dokončená sestava se znovu nepoužila. Osobní seznamy a přehrávání Webshare používají vlastní účty připojené v cílovém Kodi.
 
 Původní kód Rodinného kina je pod licencí MIT. Arctic Fuse 3 je dílo [jurialmunkey](https://github.com/jurialmunkey/skin.arctic.fuse.3) pod licencí [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Instalátor přidává úpravy do místně nainstalovaného vzhledu a jeho vlastní soubory zůstávají pod původní licencí. Webshare, Trakt a další služby spravují jejich provozovatelé.
