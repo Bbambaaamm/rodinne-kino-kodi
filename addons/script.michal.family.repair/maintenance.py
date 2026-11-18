@@ -31,6 +31,7 @@ STREAMING_TEMPLATES = (
     'shortcuts/generator/data/setup/widgets_include_row.xml',
 )
 ADDON = xbmcaddon.Addon(ID)
+VERSION = ADDON.getAddonInfo('version')
 PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
 PROFILE = xbmcvfs.translatePath(ADDON.getAddonInfo('profile'))
 USER = xbmcvfs.translatePath('special://profile/')
@@ -113,9 +114,9 @@ def stage(backup_function):
         raise RuntimeError('Local backup is not available')
     install_provider(register=False)
     changes = read_json(os.path.join(PROFILE, 'changes.json'))
-    changes['pending_version'] = '1.6.19'
+    changes['pending_version'] = VERSION
     write_json(os.path.join(PROFILE, 'changes.json'), changes)
-    status('staged_restart_required', version='1.6.19', provider='0.9.13', credentials_exported=False)
+    status('staged_restart_required', version=VERSION, provider='0.9.13', credentials_exported=False)
 
 
 def metadata_patch():
@@ -123,10 +124,10 @@ def metadata_patch():
         raise RuntimeError('Close title dialogs and playback before applying metadata patch')
     install_provider(register=True)
     changes = read_json(os.path.join(PROFILE, 'changes.json'))
-    changes['version'] = '1.6.19'
+    changes['version'] = VERSION
     changes['metadata_offscreen_patch'] = time.time()
     write_json(os.path.join(PROFILE, 'changes.json'), changes)
-    status('metadata_patch_applied', version='1.6.19', provider='0.9.13', credentials_exported=False)
+    status('metadata_patch_applied', version=VERSION, provider='0.9.13', credentials_exported=False)
 
 
 def ui_patch():
@@ -145,18 +146,18 @@ def ui_patch():
         HOME.clearProperty('Family.Service.Stop')
         xbmc.executebuiltin('RunScript(special://home/addons/script.michal.family.repair/service.py)')
     changes = read_json(os.path.join(PROFILE, 'changes.json'))
-    changes['version'] = '1.6.19'
+    changes['version'] = VERSION
     changes['single_window_browser'] = time.time()
     updated=search_patch() or updated
     updated=paging_patch() or updated
     if updated:
         xbmc.executebuiltin('ReloadSkin()')
     write_json(os.path.join(PROFILE, 'changes.json'), changes)
-    status('family_ui_applied', version='1.6.19', provider='0.9.13', provider_sha256=read_json(os.path.join(PATH,'resources','manifest.json'))['provider_sha256'], credentials_exported=False)
+    status('family_ui_applied', version=VERSION, provider='0.9.13', provider_sha256=read_json(os.path.join(PATH,'resources','manifest.json'))['provider_sha256'], credentials_exported=False)
 
 
 def finalize():
-    for aid, version in ((ID, '1.6.19'), (PROVIDER, '0.9.13')):
+    for aid, version in ((ID, VERSION), (PROVIDER, '0.9.13')):
         addon = rpc('Addons.GetAddonDetails', {'addonid': aid, 'properties': ['version', 'enabled']})['addon']
         if addon.get('version') != version or not addon.get('enabled'):
             raise RuntimeError('Restart has not loaded the staged version')
@@ -164,11 +165,11 @@ def finalize():
         raise RuntimeError('Restarted service is not running')
     changes = read_json(os.path.join(PROFILE, 'changes.json'))
     changes.pop('pending_version', None)
-    changes['version'] = '1.6.19'
+    changes['version'] = VERSION
     changes['applied'] = time.time()
     write_json(os.path.join(PROFILE, 'changes.json'), changes)
     HOME.setProperty('Family.Enabled', 'true')
-    status('applied', version='1.6.19', provider='0.9.13', backup=changes.get('backup'), credentials_exported=False)
+    status('applied', version=VERSION, provider='0.9.13', backup=changes.get('backup'), credentials_exported=False)
 
 
 def video_active():
@@ -854,15 +855,23 @@ def configure_player(manifest):
     episode = 'executebuiltin://RunPlugin(plugin://' + PROVIDER + '/?action=card&kind=episode&tmdb_id={tmdb}&season={season}&episode={episode})'
     player.update(play_movie=movie, search_movie=movie, play_episode=episode, search_episode=episode)
     write_json(os.path.join(folder, 'family.webshare.json'), player)
+    trakt = xbmcaddon.Addon('script.trakt')
+    for key in ('rate_movie', 'rate_episode', 'rate_rerate'):
+        manifest.setdefault('trakt_settings', {}).setdefault(key, trakt.getSetting(key))
+        write_json(os.path.join(PROFILE, 'changes.json'), manifest)
+        trakt.setSetting(key, 'false')
 
-def setup_requirements():
+def setup_preflight():
     app = rpc('Application.GetProperties', {'properties': ['version']})
     if app['version']['major'] < 21:
-        raise RuntimeError('Rodinné kino vyžaduje Kodi 21 Omega nebo novější.')
-    if xbmc.getSkinDir() != 'skin.arctic.fuse.3':
-        raise RuntimeError('Vyber v Kodi vzhled Arctic Fuse 3 a spusť instalaci znovu.')
+        raise RuntimeError('Rodinné kino vyžaduje alespoň Kodi 21 Omega.')
     if video_active() or HOME.getProperty('Family.Card.Active'):
         raise RuntimeError('Zavři přehrávání a otevřené karty filmů před instalací.')
+
+def setup_requirements():
+    setup_preflight()
+    if xbmc.getSkinDir() != 'skin.arctic.fuse.3':
+        raise RuntimeError('Arctic Fuse 3 není aktivní. Potvrď změnu vzhledu a spusť instalaci znovu.')
     missing = []
     for aid in ('skin.arctic.fuse.3', 'plugin.video.themoviedb.helper', 'plugin.video.yawsp', 'script.skinvariables', 'script.trakt'):
         try:
@@ -905,14 +914,14 @@ def apply(backup_function):
     write_keymap()
     status('layout')
     configure_layout(changes)
-    changes['version'] = '1.6.19'
+    changes['version'] = VERSION
     changes['applied'] = time.time()
     write_json(manifest_path, changes)
     HOME.setProperty('Family.Enabled', 'true')
     HOME.clearProperty('Family.Service.Stop')
     xbmc.executebuiltin('ReloadSkin()')
     xbmc.executebuiltin('RunScript(special://home/addons/script.michal.family.repair/service.py)')
-    status('applied', version='1.6.19', provider='0.9.13', backup=baseline['path'], credentials_exported=False)
+    status('applied', version=VERSION, provider='0.9.13', backup=baseline['path'], credentials_exported=False)
 
 def back_playback():
     if not video_active():
@@ -982,7 +991,7 @@ def service():
     pager = provider_module('autopaging').Pager(family)
     ratings = provider_module('csfd').Ratings(family)
     movie_watch = provider_module('movie_watch').MovieWatchSync(family)
-    HOME.setProperty('Family.Service.Version', '1.6.19')
+    HOME.setProperty('Family.Service.Version', VERSION)
     monitor = xbmc.Monitor()
     last = 0
     try:
@@ -1060,7 +1069,15 @@ def atlas_settings():
 
 
 def menu(backup_function=None):
-    options = ['Kontrola rodinného kina', 'Předvolby: český zvuk a 1080p', 'Otevřít přihlášení Trakt', 'Otevřít přihlášení Webshare', 'Zobrazit umístění zálohy', 'Obnovit původní sestavu', 'Přejít na Android TV', 'Použít ověřené rodinné nastavení', 'Hodnocení ČSFD – Atlas', 'Zavřít']
+    changes = read_json(os.path.join(PROFILE, 'changes.json'))
+    setup_label = 'Nainstalovat Rodinné kino včetně vzhledu'
+    if not changes.get('applied') or changes.get('rolled_back'):
+        if backup_function and xbmcgui.Dialog().yesno('Rodinné kino',
+                'Nainstalovat vzhled Arctic Fuse 3, potřebné doplňky a nabídky Rodinného kina? Kodi může vyžádat potvrzení instalace a změny vzhledu.'):
+            from bootstrap import install
+            install(backup_function)
+        return
+    options = ['Kontrola rodinného kina', 'Předvolby: český zvuk a 1080p', 'Otevřít přihlášení Trakt', 'Otevřít přihlášení Webshare', 'Zobrazit umístění zálohy', 'Obnovit původní sestavu', 'Přejít na Android TV', setup_label, 'Hodnocení ČSFD – Atlas', 'Zavřít']
     choice = xbmcgui.Dialog().select('Servis rodinného kina', options)
     if choice == 0:
         verify()
@@ -1081,10 +1098,11 @@ def menu(backup_function=None):
     elif choice == 6:
         xbmc.executebuiltin('Minimize')
     elif choice == 7 and backup_function:
-        if xbmcgui.Dialog().yesno('Použít nastavení Rodinného kina?',
-                                  'Uloží se místní záloha a upraví se nabídky Arctic Fuse 3, ovládání a volba přehrávače.',
+        if xbmcgui.Dialog().yesno(setup_label + '?',
+                                  'Instalátor doplní chybějící součásti, vytvoří místní zálohu a nastaví nabídky, ovládání a přehrávač.',
                                   defaultbutton=xbmcgui.DLG_YESNO_NO_BTN):
-            apply(backup_function)
+            from bootstrap import install
+            install(backup_function)
     elif choice == 8:
         atlas_settings()
 
@@ -1303,6 +1321,9 @@ def rollback():
     tmdb = xbmcaddon.Addon('plugin.video.themoviedb.helper')
     for key, value in changes.get('tmdb_settings', {}).items():
         tmdb.setSetting(key, value)
+    trakt = xbmcaddon.Addon('script.trakt')
+    for key, value in changes.get('trakt_settings', {}).items():
+        trakt.setSetting(key, value)
     for key, value in changes.get('skin_strings', {}).items():
         xbmc.executebuiltin('Skin.SetString(' + key + ',"' + str(value).replace('"', '') + '")')
     for key, value in changes.get('skin_bools', {}).items():
@@ -1341,5 +1362,10 @@ def rollback():
     rebuild_layout()
     xbmc.executebuiltin('Action(reloadkeymaps)')
     xbmc.executebuiltin('UpdateLocalAddons')
-    xbmc.executebuiltin('ReloadSkin()')
+    previous_skin = changes.get('previous_skin')
+    if previous_skin and previous_skin != xbmc.getSkinDir():
+        if not rpc('Settings.SetSettingValue', {'setting': 'lookandfeel.skin', 'value': previous_skin}):
+            raise RuntimeError('Původní nastavení bylo obnoveno. Vyber původní vzhled v nastavení Kodi.')
+    else:
+        xbmc.executebuiltin('ReloadSkin()')
     status('rolled_back')
