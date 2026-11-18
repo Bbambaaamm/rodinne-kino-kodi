@@ -60,4 +60,6 @@ Po použití vzhledu následuje průvodce účty. Již přihlášené účty zac
 
 Chybějící účet zobrazí v seznamu přímo tlačítko **Připojit Trakt** nebo **Připojit Webshare**. Po přihlášení se znovu vyžádá načtení osobních seznamů. Prošlo 54 kontrol instalátoru včetně navigace, zachování již nastavených účtů, odložení průvodce a přihlašovacího postupu Webshare se simulovanými odpověďmi.
 
+V odděleném Kodi 21.3 na PC se 1.8.3 stáhla z veřejného repozitáře a sama použila na dosavadní sestavu 1.8.1. Ověřeny byly zapnuté uzly Filmy, Seriály, Moje a Streamovací služby a shoda všech 30 souborů filmového doplňku s vydaným balíčkem. Webshare se úspěšně přihlásilo pomocí místně uložených údajů. Průvodce správně rozlišil již připojené ukládání zhlédnutí a chybějící připojení osobních seznamů Traktu. Katalog filmového žánru i katalog seriálů služby vrátily po deseti titulech bez chyby. Osobní seznamy lze ověřit až po potvrzení připojení jejich účtu uživatelem.
+
 Původní kód Rodinného kina je pod licencí MIT. Arctic Fuse 3 je dílo [jurialmunkey](https://github.com/jurialmunkey/skin.arctic.fuse.3) pod licencí [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Instalátor přidává úpravy do místně nainstalovaného vzhledu a jeho vlastní soubory zůstávají pod původní licencí. Webshare, Trakt a další služby spravují jejich provozovatelé.
