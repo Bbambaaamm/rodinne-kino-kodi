@@ -81,6 +81,19 @@ def install_upstream_zip(addon):
             data = response.read(512 * 1024 + 1)
     except OSError as error:
         raise RuntimeError('Stažení doplňku ' + addon + ' selhalo. Zkontroluj připojení a spusť instalaci znovu.') from error
+    install_zip_data(addon, data, prefix, checksum)
+
+
+def install_repository():
+    addon = 'repository.rodinne.kino'
+    if enable_installed(addon):
+        return
+    manifest = maintenance.read_json(os.path.join(maintenance.PATH, 'resources', 'manifest.json'))
+    with open(os.path.join(maintenance.PATH, 'resources', 'repository.zip'), 'rb') as source:
+        install_zip_data(addon, source.read(), addon, manifest['repository_sha256'])
+
+
+def install_zip_data(addon, data, prefix, checksum):
     if hashlib.sha256(data).hexdigest() != checksum:
         raise RuntimeError('Zdrojový ZIP se změnil. Ověř aktuální vydání doplňku ' + addon + '.')
 
@@ -132,6 +145,60 @@ def install_from_repo(addon):
         raise RuntimeError('Kodi nedokončilo instalaci ' + addon + '. Při opakování potvrď jeho instalaci v Kodi.')
 
 
+def wait_for_skin_confirmation():
+    monitor = xbmc.Monitor()
+    deadline = time.monotonic() + 45
+    active_since = None
+    confirmation_seen = False
+    while time.monotonic() < deadline:
+        confirming = xbmc.getCondVisibility('Window.IsActive(yesnodialog)')
+        confirmation_seen = confirmation_seen or confirming
+        selected = maintenance.rpc('Settings.GetSettingValue', {'setting': 'lookandfeel.skin'})['value']
+        if confirmation_seen and not confirming and selected != SKIN:
+            break
+        if xbmc.getSkinDir() == SKIN:
+            dismiss_skin_wizard()
+            if active_since is None:
+                active_since = time.monotonic()
+            # Kodi exposes the new skin before displaying its keep/revert
+            # dialog. Allow that dialog to arrive and its timeout to expire.
+            settled = time.monotonic() - active_since >= (1 if confirmation_seen else 12)
+            if settled and not confirming and selected == SKIN:
+                return
+        elif confirmation_seen and not confirming:
+            break
+        if monitor.waitForAbort(.1):
+            break
+    raise RuntimeError('Potvrď Arctic Fuse 3 jako aktivní vzhled a znovu spusť instalaci.')
+
+
+def dismiss_skin_wizard():
+    if xbmc.getSkinDir() != SKIN:
+        return
+    if xbmc.getCondVisibility('Skin.HasSetting(SetupWizard.Pending)'):
+        xbmc.executebuiltin('Skin.Reset(SetupWizard.Pending)', True)
+    if xbmc.getCondVisibility('Window.IsVisible(11130)'):
+        xbmc.executebuiltin('Dialog.Close(11130,true)', True)
+
+
+def defer_trakt_reminder():
+    # A fresh Trakt service otherwise opens its account dialog while Kodi is
+    # asking whether to keep the newly loaded skin. Accounts have their own
+    # explicit entry in the family service menu after installation.
+    path = os.path.join(maintenance.USER, 'addon_data', TRAKT, 'settings.xml')
+    if os.path.isfile(path):
+        tree = ET.parse(path)
+        if tree.find('.//setting[@id="last_reminder"]') is not None:
+            return
+    else:
+        tree = ET.ElementTree(ET.Element('settings', version='2'))
+    ET.SubElement(tree.getroot(), 'setting', id='last_reminder').text = '-1'
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    temporary = path + '.family-new'
+    tree.write(temporary, encoding='utf-8', xml_declaration=True)
+    os.replace(temporary, path)
+
+
 def prepare():
     maintenance.setup_preflight()
     previous_skin = xbmc.getSkinDir()
@@ -140,6 +207,7 @@ def prepare():
     if previous_skin != SKIN:
         changes.setdefault('previous_skin', previous_skin)
         maintenance.write_json(path, changes)
+    install_repository()
     if not addon_details(SKIN):
         maintenance.set_setting('addons.updatemode', 1, changes)
         install_upstream_zip(JURIAL_REPO)
@@ -150,6 +218,8 @@ def prepare():
         for dependency in ('script.module.requests', 'script.module.unidecode'):
             install_from_repo(dependency)
     install_upstream_zip(YAWSP)
+    if not addon_details(TRAKT):
+        defer_trakt_reminder()
     install_from_repo(TRAKT)
     install_from_repo('resource.language.cs_cz')
     helper = addon_details('plugin.video.themoviedb.helper')
@@ -157,16 +227,13 @@ def prepare():
     if tuple(int(part) for part in re.findall(r'\d+', version)[:2]) >= (6, 22):
         install_from_repo('script.module.tmdbhelper.sync.trakt')
     maintenance.setup_preflight()
+    dismiss_skin_wizard()
     if xbmc.getSkinDir() != SKIN:
         notify('Potvrď změnu vzhledu na Arctic Fuse 3.')
         if not maintenance.rpc('Settings.SetSettingValue', {'setting': 'lookandfeel.skin', 'value': SKIN}):
             raise RuntimeError('Kodi nedokázalo přepnout na Arctic Fuse 3.')
-        # Kodi activates the skin before asking whether to keep it. The native
-        # confirmation is processed before this blocking GUI action returns.
+        wait_for_skin_confirmation()
         xbmc.executebuiltin('ActivateWindow(Home)', True)
-        if not wait_for(lambda: xbmc.getSkinDir() == SKIN and
-                        not xbmc.getCondVisibility('Window.IsActive(yesnodialog)'), 20):
-            raise RuntimeError('Potvrď Arctic Fuse 3 jako aktivní vzhled a znovu spusť instalaci.')
 
 
 def install(backup_function):

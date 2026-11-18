@@ -64,17 +64,26 @@ def write_addon(addon, files):
 def main():
     provider = source_files(PROVIDER)
     installer = source_files(INSTALLER)
+    repository_files = source_files(REPOSITORY)
+    repository_data = make_zip(REPOSITORY, repository_files)
+    installer['resources/repository.zip'] = repository_data
     version = ET.fromstring(provider['addon.xml']).attrib['version']
     provider_data = make_zip(PROVIDER, provider)
     installer[f'resources/provider-{version}.zip'] = provider_data
     installer['resources/manifest.json'] = json.dumps({
+        'provider_version': version,
+        'repository_sha256': sha256(repository_data).hexdigest(),
         'provider_sha256': sha256(provider_data).hexdigest(),
         'provider_files': sorted(provider),
     }).encode('utf-8')
+    release = ET.fromstring(installer['addon.xml']).attrib['version']
+    host = 'resources/search-host.xml'
+    installer[host] = installer[host].replace(b'<window',
+        ('<!-- Rodinné kino ' + release + ' -->\n<window').encode('utf-8'), 1)
 
     index = ET.Element('addons')
     index.append(write_addon(INSTALLER, installer))
-    repository = write_addon(REPOSITORY, source_files(REPOSITORY))
+    repository = write_addon(REPOSITORY, repository_files)
     index.append(repository)
     ET.indent(index, space='  ')
     metadata = ET.tostring(index, encoding='utf-8', xml_declaration=True)

@@ -31,7 +31,7 @@ class BootstrapTests(unittest.TestCase):
             clearProperty=lambda key: self.properties.pop(key, None),
         )
         self.maintenance = types.SimpleNamespace(
-            HOME_PATH=str(self.root), PROFILE=str(self.root), HOME=self.home,
+            HOME_PATH=str(self.root), PROFILE=str(self.root), USER=str(self.root / 'userdata'), HOME=self.home,
             rpc=Mock(side_effect=self.rpc), read_json=self.read_json,
             write_json=lambda path, data: Path(path).write_text(json.dumps(data)),
             set_setting=Mock(), setup_preflight=Mock(), apply=Mock(),
@@ -48,6 +48,7 @@ class BootstrapTests(unittest.TestCase):
             spec = importlib.util.spec_from_file_location('tested_bootstrap', SOURCE)
             self.setup = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(self.setup)
+        self.setup.install_repository = Mock()
 
     def read_json(self, path):
         return json.loads(Path(path).read_text()) if Path(path).exists() else {}
@@ -67,6 +68,8 @@ class BootstrapTests(unittest.TestCase):
             self.settings[params['setting']] = params['value']
             self.skin = params['value']
             return True
+        if method == 'Settings.GetSettingValue':
+            return {'value': self.settings.get(params['setting'], self.skin)}
         raise AssertionError(method)
 
     def builtin(self, command, wait=False):
@@ -160,7 +163,9 @@ class BootstrapTests(unittest.TestCase):
                 self.installed['plugin.video.themoviedb.helper'] = {'version': '6.22.4', 'enabled': True}
         with patch.object(self.setup, 'install_from_repo', side_effect=install) as repo:
             with patch.object(self.setup, 'install_upstream_zip', side_effect=install):
-                self.setup.prepare()
+                with patch.object(self.setup, 'wait_for_skin_confirmation') as confirmation:
+                    self.setup.prepare()
+        confirmation.assert_called_once()
         self.assertEqual(self.skin, self.setup.SKIN)
         self.assertIn('resource.language.cs_cz', [call.args[0] for call in repo.call_args_list])
         self.assertIn('script.module.tmdbhelper.sync.trakt', self.installed)
@@ -199,6 +204,32 @@ class BootstrapTests(unittest.TestCase):
                 self.setup.prepare()
         download.assert_not_called()
         self.assertEqual(self.settings, {})
+
+    def test_skin_confirmation_waits_for_late_dialog(self):
+        clock = [0.0]
+        def wait(seconds):
+            clock[0] += seconds
+            return False
+        self.xbmc.Monitor = lambda: types.SimpleNamespace(waitForAbort=wait)
+        self.skin = self.setup.SKIN
+        self.xbmc.getCondVisibility = lambda _: 0.5 < clock[0] < 3
+        with patch.object(self.setup.time, 'monotonic', side_effect=lambda: clock[0]):
+            self.setup.wait_for_skin_confirmation()
+        self.assertGreaterEqual(clock[0], 3)
+
+    def test_rejected_skin_confirmation_stops_installation(self):
+        clock = [0.0]
+        def wait(seconds):
+            clock[0] += seconds
+            if clock[0] >= 2:
+                self.skin = 'skin.estuary'
+            return False
+        self.skin = self.setup.SKIN
+        self.xbmc.Monitor = lambda: types.SimpleNamespace(waitForAbort=wait)
+        self.xbmc.getCondVisibility = lambda _: clock[0] < 2
+        with patch.object(self.setup.time, 'monotonic', side_effect=lambda: clock[0]):
+            with self.assertRaises(RuntimeError):
+                self.setup.wait_for_skin_confirmation()
 
 
 if __name__ == '__main__':

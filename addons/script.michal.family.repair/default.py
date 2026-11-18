@@ -28,10 +28,10 @@ def backup():
         ('userdata/addon_data/plugin.video.themoviedb.helper/reconfigured_players/family.webshare.json',
          os.path.join(user, 'addon_data', 'plugin.video.themoviedb.helper', 'reconfigured_players', 'family.webshare.json')),
         ('addons/' + maintenance.PROVIDER, os.path.join(maintenance.HOME_PATH, 'addons', maintenance.PROVIDER)),
-        ('skin.arctic.fuse.3', xbmcvfs.translatePath('special://skin/')),
+        ('skin.arctic.fuse.3', maintenance.local_path(xbmcvfs.translatePath('special://skin/'))),
     )
     for relative, source in saved_paths:
-        target = os.path.join(destination, relative)
+        target = maintenance.local_path(os.path.join(destination, relative))
         if os.path.isdir(source):
             shutil.copytree(source, target, ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
         elif os.path.isfile(source):
@@ -59,6 +59,7 @@ def main():
     except (OSError, RuntimeError, ValueError, KeyError) as error:
         maintenance.status('error', error=type(error).__name__)
         if mode == 'menu':
+            maintenance.HOME.setProperty('FamilyRepair.Error', str(error))
             maintenance.HOME.clearProperty('Family.Service.Stop')
             xbmcgui.Dialog().ok(xbmcaddon.Addon().getAddonInfo('name'), str(error))
 

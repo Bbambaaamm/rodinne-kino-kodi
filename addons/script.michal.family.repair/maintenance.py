@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 import sys
+import tempfile
 import time
 import zipfile
 from urllib.parse import urlencode
@@ -30,12 +31,23 @@ STREAMING_TEMPLATES = (
     '1080i/Includes_Lists.xml',
     'shortcuts/generator/data/setup/widgets_include_row.xml',
 )
+
+def local_path(path):
+    if os.name != 'nt':
+        return path
+    path = os.path.abspath(os.path.normpath(path))
+    if path.startswith('\\\\?\\'):
+        return path
+    if path.startswith('\\\\'):
+        return '\\\\?\\UNC\\' + path[2:]
+    return '\\\\?\\' + path
+
 ADDON = xbmcaddon.Addon(ID)
 VERSION = ADDON.getAddonInfo('version')
-PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
-PROFILE = xbmcvfs.translatePath(ADDON.getAddonInfo('profile'))
-USER = xbmcvfs.translatePath('special://profile/')
-HOME_PATH = xbmcvfs.translatePath('special://home/')
+PATH = local_path(xbmcvfs.translatePath(ADDON.getAddonInfo('path')))
+PROFILE = local_path(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')))
+USER = local_path(xbmcvfs.translatePath('special://profile/'))
+HOME_PATH = local_path(xbmcvfs.translatePath('special://home/'))
 HOME = xbmcgui.Window(10000)
 PROVIDER = 'plugin.video.webshare.available'
 
@@ -51,8 +63,19 @@ def read_json(path, fallback=None):
 
 def write_json(path, data):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=os.path.dirname(path),
+                                         prefix=os.path.basename(path) + '.', delete=False) as f:
+            temporary = f.name
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        os.replace(temporary, path)
+    finally:
+        if temporary and os.path.isfile(temporary):
+            os.remove(temporary)
+
+def packaged_provider_version():
+    return read_json(os.path.join(PATH, 'resources', 'manifest.json')).get('provider_version', '0.9.13')
 
 def rpc(method, params=None):
     data = {'jsonrpc': '2.0', 'id': 1, 'method': method}
@@ -81,29 +104,53 @@ def register_provider():
     for _ in range(60):
         try:
             result = rpc('Addons.GetAddonDetails', {'addonid': PROVIDER, 'properties': ['version', 'enabled']})['addon']
-            if result.get('version') == '0.9.13':
+            if result.get('version') == packaged_provider_version():
                 if not result.get('enabled'):
                     rpc('Addons.SetAddonEnabled', {'addonid': PROVIDER, 'enabled': True})
-                return
+                else:
+                    return
         except RuntimeError:
             pass
         xbmc.sleep(250)
     raise RuntimeError('Provider registration did not finish')
 
 def install_provider(register=True):
-    package = os.path.join(PATH, 'resources', 'provider-0.9.13.zip')
-    expected = read_json(os.path.join(PATH, 'resources', 'manifest.json'))['provider_sha256']
+    manifest = read_json(os.path.join(PATH, 'resources', 'manifest.json'))
+    package = os.path.join(PATH, 'resources', 'provider-' + packaged_provider_version() + '.zip')
+    expected = manifest['provider_sha256']
     with open(package, 'rb') as f:
         if hashlib.sha256(f.read()).hexdigest() != expected:
             raise RuntimeError('Provider checksum mismatch')
     root = os.path.realpath(os.path.join(HOME_PATH, 'addons'))
     allowed = os.path.join(root, PROVIDER) + os.sep
     with zipfile.ZipFile(package) as archive:
+        metadata = ET.fromstring(archive.read(PROVIDER + '/addon.xml'))
+        if metadata.get('id') != PROVIDER or metadata.get('version') != packaged_provider_version():
+            raise RuntimeError('Provider metadata mismatch')
         for entry in archive.infolist():
             target = os.path.realpath(os.path.join(root, entry.filename))
             if not target.startswith(allowed):
                 raise RuntimeError('Unexpected provider archive path')
-        archive.extractall(root)
+        for entry in archive.infolist():
+            if entry.is_dir():
+                continue
+            target = local_path(os.path.join(root, entry.filename))
+            os.makedirs(os.path.dirname(target), exist_ok=True)
+            temporary = target + '.family-new'
+            try:
+                with archive.open(entry) as source, open(temporary, 'wb') as destination:
+                    shutil.copyfileobj(source, destination)
+                os.replace(temporary, target)
+            finally:
+                if os.path.isfile(temporary):
+                    os.remove(temporary)
+    previous = read_json(os.path.join(PROFILE, 'changes.json')).get('provider_files', [])
+    for name in set(previous) - set(manifest['provider_files']):
+        target = os.path.realpath(os.path.join(root, PROVIDER, name))
+        if not target.startswith(allowed):
+            raise RuntimeError('Unexpected previous provider path')
+        if os.path.isfile(target):
+            os.remove(target)
     if register:
         register_provider()
 
@@ -116,7 +163,7 @@ def stage(backup_function):
     changes = read_json(os.path.join(PROFILE, 'changes.json'))
     changes['pending_version'] = VERSION
     write_json(os.path.join(PROFILE, 'changes.json'), changes)
-    status('staged_restart_required', version=VERSION, provider='0.9.13', credentials_exported=False)
+    status('staged_restart_required', version=VERSION, provider=packaged_provider_version(), credentials_exported=False)
 
 
 def metadata_patch():
@@ -127,7 +174,7 @@ def metadata_patch():
     changes['version'] = VERSION
     changes['metadata_offscreen_patch'] = time.time()
     write_json(os.path.join(PROFILE, 'changes.json'), changes)
-    status('metadata_patch_applied', version=VERSION, provider='0.9.13', credentials_exported=False)
+    status('metadata_patch_applied', version=VERSION, provider=packaged_provider_version(), credentials_exported=False)
 
 
 def ui_patch():
@@ -153,11 +200,11 @@ def ui_patch():
     if updated:
         xbmc.executebuiltin('ReloadSkin()')
     write_json(os.path.join(PROFILE, 'changes.json'), changes)
-    status('family_ui_applied', version=VERSION, provider='0.9.13', provider_sha256=read_json(os.path.join(PATH,'resources','manifest.json'))['provider_sha256'], credentials_exported=False)
+    status('family_ui_applied', version=VERSION, provider=packaged_provider_version(), provider_sha256=read_json(os.path.join(PATH,'resources','manifest.json'))['provider_sha256'], credentials_exported=False)
 
 
 def finalize():
-    for aid, version in ((ID, VERSION), (PROVIDER, '0.9.13')):
+    for aid, version in ((ID, VERSION), (PROVIDER, packaged_provider_version())):
         addon = rpc('Addons.GetAddonDetails', {'addonid': aid, 'properties': ['version', 'enabled']})['addon']
         if addon.get('version') != version or not addon.get('enabled'):
             raise RuntimeError('Restart has not loaded the staged version')
@@ -169,7 +216,7 @@ def finalize():
     changes['applied'] = time.time()
     write_json(os.path.join(PROFILE, 'changes.json'), changes)
     HOME.setProperty('Family.Enabled', 'true')
-    status('applied', version=VERSION, provider='0.9.13', backup=changes.get('backup'), credentials_exported=False)
+    status('applied', version=VERSION, provider=packaged_provider_version(), backup=changes.get('backup'), credentials_exported=False)
 
 
 def video_active():
@@ -729,6 +776,7 @@ def patch_streaming_templates():
         with open(temporary, 'w', encoding='utf-8') as target:
             target.write(updated)
         os.replace(temporary, path)
+    return bool(changes)
 
 
 def streaming_config():
@@ -856,10 +904,10 @@ def configure_player(manifest):
     player.update(play_movie=movie, search_movie=movie, play_episode=episode, search_episode=episode)
     write_json(os.path.join(folder, 'family.webshare.json'), player)
     trakt = xbmcaddon.Addon('script.trakt')
-    for key in ('rate_movie', 'rate_episode', 'rate_rerate'):
+    for key, value in (('rate_movie', 'false'), ('rate_episode', 'false'), ('rate_rerate', 'false'), ('last_reminder', '-1')):
         manifest.setdefault('trakt_settings', {}).setdefault(key, trakt.getSetting(key))
         write_json(os.path.join(PROFILE, 'changes.json'), manifest)
-        trakt.setSetting(key, 'false')
+        trakt.setSetting(key, value)
 
 def setup_preflight():
     app = rpc('Application.GetProperties', {'properties': ['version']})
@@ -885,8 +933,9 @@ def setup_requirements():
     streaming_config()
 
 
-def apply(backup_function):
+def apply(backup_function, restart_service=True):
     setup_requirements()
+    HOME.clearProperty('FamilyRepair.Error')
     status('backup')
     baseline = backup_function()
     if not os.path.isdir(baseline['path']):
@@ -903,6 +952,7 @@ def apply(backup_function):
         xbmc.sleep(200)
     status('install_provider')
     install_provider()
+    set_setting('general.addonupdates', 0, changes)
     set_setting('filelists.showparentdiritems', False, changes)
     set_setting('locale.audiolanguage', 'Czech', changes)
     set_setting('videoplayer.preferdefaultflag', False, changes)
@@ -915,13 +965,19 @@ def apply(backup_function):
     status('layout')
     configure_layout(changes)
     changes['version'] = VERSION
+    package = read_json(os.path.join(PATH, 'resources', 'manifest.json'))
+    changes['provider_version'] = packaged_provider_version()
+    changes['provider_sha256'] = package['provider_sha256']
+    changes['provider_files'] = package['provider_files']
+    changes['skin_version'] = xbmcaddon.Addon('skin.arctic.fuse.3').getAddonInfo('version')
     changes['applied'] = time.time()
     write_json(manifest_path, changes)
     HOME.setProperty('Family.Enabled', 'true')
     HOME.clearProperty('Family.Service.Stop')
     xbmc.executebuiltin('ReloadSkin()')
-    xbmc.executebuiltin('RunScript(special://home/addons/script.michal.family.repair/service.py)')
-    status('applied', version=VERSION, provider='0.9.13', backup=baseline['path'], credentials_exported=False)
+    if restart_service:
+        xbmc.executebuiltin('RunScript(special://home/addons/script.michal.family.repair/service.py)')
+    status('applied', version=VERSION, provider=packaged_provider_version(), backup=baseline['path'], credentials_exported=False)
 
 def back_playback():
     if not video_active():
@@ -972,7 +1028,7 @@ def back():
     else:
         xbmc.executebuiltin('Action(Back)')
 
-def service():
+def service(updater=None):
     changes = read_json(os.path.join(PROFILE, 'changes.json'))
     if not changes.get('applied') or changes.get('rolled_back'):
         return
@@ -1003,6 +1059,8 @@ def service():
             browsing = (current in (10000, 10025, 11101, 11102, 11103, 11104)
                         and xbmcgui.getCurrentWindowDialogId() in (0, 9999)
                         and not player.isPlaying() and not HOME.getProperty('Family.Card.Active'))
+            if updater and updater.ready(browsing and current != 10025):
+                return
             movie_watch.tick(browsing)
             try:
                 ratings.tick(browsing)
@@ -1021,7 +1079,8 @@ def service():
                 except Exception as exc:HOME.setProperty('Family.Paging.ServiceError',type(exc).__name__)
             if current in (10000, 11101, 11102, 11103, 11104):
                 HOME.setProperty('Family.LastHub', str(current))
-            if time.time() - last > 60 and not player.isPlaying():
+            if (time.time() - last > 60 and browsing and xbmc.getGlobalIdleTime() >= 15
+                    and not (updater and updater.pending())):
                 last = time.time()
                 updated = False
                 errors = {}
@@ -1032,6 +1091,12 @@ def service():
                     except (OSError, RuntimeError, ValueError, ET.ParseError) as exc:
                         errors[patch.__name__] = type(exc).__name__
                 HOME.clearProperty('Family.Service.Maintenance')
+                try:
+                    if patch_streaming_templates():
+                        rebuild_layout()
+                        updated = True
+                except (OSError, RuntimeError, ValueError, ET.ParseError) as exc:
+                    errors['streaming_templates'] = type(exc).__name__
                 HOME.setProperty('Family.Service.MaintenanceErrors', json.dumps(errors))
                 if updated:
                     HOME.setProperty('Family.TranslationUpdated', 'true')
@@ -1072,6 +1137,8 @@ def menu(backup_function=None):
     changes = read_json(os.path.join(PROFILE, 'changes.json'))
     setup_label = 'Nainstalovat Rodinné kino včetně vzhledu'
     if not changes.get('applied') or changes.get('rolled_back'):
+        from bootstrap import dismiss_skin_wizard
+        dismiss_skin_wizard()
         if backup_function and xbmcgui.Dialog().yesno('Rodinné kino',
                 'Nainstalovat vzhled Arctic Fuse 3, potřebné doplňky a nabídky Rodinného kina? Kodi může vyžádat potvrzení instalace a změny vzhledu.'):
             from bootstrap import install
