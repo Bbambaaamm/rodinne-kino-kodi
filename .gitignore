@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env*
+userdata/
+addon_data/
+backups/
+*.log
+*.pem

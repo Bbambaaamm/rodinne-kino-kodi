@@ -1,0 +1,994 @@
+<?xml version='1.0' encoding='utf-8'?>
+<window type="dialog">
+  <defaultcontrol always="true">406</defaultcontrol>
+  <coordinates>
+    <system>1</system>
+  </coordinates>
+  <animation effect="fade" start="0" end="100" time="140">WindowOpen</animation>
+  <animation effect="fade" start="100" end="0" time="100">WindowClose</animation>
+  <controls>
+    <control type="group" id="800">
+      <visible>!String.IsEqual(Window.Property(discovery.surface),true)</visible>
+      <control type="image">
+        <left>0</left>
+        <top>0</top>
+        <width>1920</width>
+        <height>1080</height>
+        <texture colordiffuse="30000000">family-white.png</texture>
+      </control>
+      <control type="image">
+        <left>292</left>
+        <top>132</top>
+        <width>1336</width>
+        <height>816</height>
+        <texture border="56">family-shadow.png</texture>
+      </control>
+      <control type="image">
+        <left>320</left>
+        <top>160</top>
+        <width>1280</width>
+        <height>760</height>
+        <texture border="32" colordiffuse="BF161D2B">family-panel.png</texture>
+      </control>
+      <control type="image">
+        <left>320</left>
+        <top>160</top>
+        <width>1280</width>
+        <height>760</height>
+        <texture border="32" colordiffuse="22FFFFFF">family-panel-edge.png</texture>
+      </control>
+      <control type="image" id="100">
+        <left>360</left>
+        <top>275</top>
+        <width>250</width>
+        <height>375</height>
+        <aspectratio>keep</aspectratio>
+        <texture diffuse="family-poster-mask.png">DefaultVideo.png</texture>
+      </control>
+      <control type="textbox" id="6">
+        <left>360</left>
+        <top>680</top>
+        <width>250</width>
+        <height>90</height>
+        <font>font_mini</font>
+        <textcolor>FFB6C3D4</textcolor>
+        <autoscroll>false</autoscroll>
+      </control>
+      <control type="label" id="2">
+        <left>660</left>
+        <top>275</top>
+        <width>900</width>
+        <height>50</height>
+        <font>font_main</font>
+        <textcolor>FF7BD9D1</textcolor>
+        <scroll>true</scroll>
+      </control>
+      <control type="textbox" id="3">
+        <left>660</left>
+        <top>340</top>
+        <width>900</width>
+        <height>130</height>
+        <font>font_main_plot</font>
+        <textcolor>FFE2E8F0</textcolor>
+        <autoscroll>false</autoscroll>
+      </control>
+      <control type="textbox" id="13">
+        <left>660</left>
+        <top>340</top>
+        <width>860</width>
+        <height>420</height>
+        <font>font_main_plot</font>
+        <textcolor>FFE2E8F0</textcolor>
+        <autoscroll>false</autoscroll>
+        <pagecontrol>530</pagecontrol>
+      </control>
+      <control type="scrollbar" id="530">
+        <left>1544</left>
+        <top>340</top>
+        <width>16</width>
+        <height>420</height>
+        <visible>String.IsEqual(Window.Property(family.view),info)</visible>
+        <texturesliderbackground colordiffuse="FF273246">family-white.png</texturesliderbackground>
+        <texturesliderbar colordiffuse="FF8794A9">family-white.png</texturesliderbar>
+        <texturesliderbarfocus colordiffuse="FF7BD9D1">family-white.png</texturesliderbarfocus>
+        <textureslidernib />
+        <textureslidernibfocus />
+        <onright>404</onright>
+        <onleft>404</onleft>
+      </control>
+      <control type="button" id="401">
+        <left>660</left>
+        <top>500</top>
+        <width>900</width>
+        <height>62</height>
+        <font>font_main_bold</font>
+        <textcolor>FFE2E8F0</textcolor>
+        <focusedcolor>FF111823</focusedcolor>
+        <texturefocus colordiffuse="FF7BD9D1" border="16">family-button.png</texturefocus>
+        <texturenofocus colordiffuse="B0273246" border="16">family-button.png</texturenofocus>
+        <textoffsetx>26</textoffsetx>
+        <align>left</align>
+        <onleft>401</onleft>
+        <onright>401</onright>
+      </control>
+      <control type="button" id="402">
+        <left>660</left>
+        <top>578</top>
+        <width>900</width>
+        <height>62</height>
+        <font>font_main_bold</font>
+        <textcolor>FFE2E8F0</textcolor>
+        <focusedcolor>FF111823</focusedcolor>
+        <texturefocus colordiffuse="FF7BD9D1" border="16">family-button.png</texturefocus>
+        <texturenofocus colordiffuse="B0273246" border="16">family-button.png</texturenofocus>
+        <textoffsetx>26</textoffsetx>
+        <align>left</align>
+        <onleft>402</onleft>
+        <onright>402</onright>
+      </control>
+      <control type="button" id="403">
+        <left>660</left>
+        <top>656</top>
+        <width>900</width>
+        <height>62</height>
+        <font>font_main_bold</font>
+        <textcolor>FFE2E8F0</textcolor>
+        <focusedcolor>FF111823</focusedcolor>
+        <texturefocus colordiffuse="FF7BD9D1" border="16">family-button.png</texturefocus>
+        <texturenofocus colordiffuse="B0273246" border="16">family-button.png</texturenofocus>
+        <textoffsetx>26</textoffsetx>
+        <align>left</align>
+        <onleft>403</onleft>
+        <onright>403</onright>
+      </control>
+      <control type="button" id="405">
+        <left>1120</left>
+        <top>500</top>
+        <width>440</width>
+        <height>62</height>
+        <font>font_main</font>
+        <textcolor>FFE2E8F0</textcolor>
+        <focusedcolor>FF111823</focusedcolor>
+        <texturefocus colordiffuse="FF7BD9D1" border="16">family-button.png</texturefocus>
+        <texturenofocus colordiffuse="B0273246" border="16">family-button.png</texturenofocus>
+        <textoffsetx>26</textoffsetx>
+        <align>left</align>
+      </control>
+      <control type="label">
+        <left>660</left>
+        <top>882</top>
+        <width>900</width>
+        <height>26</height>
+        <font>font_mini</font>
+        <textcolor>FF9DAFC5</textcolor>
+        <label>Šipky: vybrat  ·  OK: potvrdit  ·  Zpět: o jednu úroveň</label>
+      </control>
+    </control>
+    <control type="group" id="801">
+      <visible>String.IsEqual(Window.Property(discovery.surface),true)</visible>
+      <control type="image">
+        <left>0</left>
+        <top>0</top>
+        <width>1920</width>
+        <height>1080</height>
+        <texture colordiffuse="30101722">family-white.png</texture>
+      </control>
+      <control type="image">
+        <left>172</left>
+        <top>72</top>
+        <width>1576</width>
+        <height>956</height>
+        <texture colordiffuse="FFFFFFFF" border="56">family-shadow.png</texture>
+      </control>
+      <control type="image">
+        <left>200</left>
+        <top>100</top>
+        <width>1520</width>
+        <height>900</height>
+        <texture colordiffuse="EB101722" border="32">family-panel.png</texture>
+      </control>
+      <control type="image">
+        <left>200</left>
+        <top>100</top>
+        <width>1520</width>
+        <height>900</height>
+        <texture colordiffuse="22FFFFFF" border="32">family-panel-edge.png</texture>
+      </control>
+    </control>
+    <control type="button" id="406">
+      <left>250</left>
+      <top>220</top>
+      <width>1420</width>
+      <height>70</height>
+      <font>font_main_bold</font>
+      <label>Název, herec nebo režisér…</label>
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>410</onup>
+      <ondown>407</ondown>
+      <onleft>406</onleft>
+      <onright>410</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="410">
+      <left>1450</left>
+      <top>140</top>
+      <width>220</width>
+      <height>55</height>
+      <font>font_main</font>
+      <label>Domů →</label>
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>406</onup>
+      <ondown>406</ondown>
+      <onleft>410</onleft>
+      <onright>410</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="407">
+      <left>250</left>
+      <top>310</top>
+      <width>220</width>
+      <height>60</height>
+      <font>font_main</font>
+      <label>Vše</label>
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>406</onup>
+      <ondown>420</ondown>
+      <onleft>407</onleft>
+      <onright>408</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="408">
+      <left>485</left>
+      <top>310</top>
+      <width>220</width>
+      <height>60</height>
+      <font>font_main</font>
+      <label>Filmy</label>
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>406</onup>
+      <ondown>420</ondown>
+      <onleft>407</onleft>
+      <onright>409</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="409">
+      <left>720</left>
+      <top>310</top>
+      <width>220</width>
+      <height>60</height>
+      <font>font_main</font>
+      <label>Seriály</label>
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>406</onup>
+      <ondown>420</ondown>
+      <onleft>408</onleft>
+      <onright>414</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="414">
+      <left>980</left>
+      <top>310</top>
+      <width>300</width>
+      <height>60</height>
+      <font>font_main</font>
+      <label>Nový výběr</label>
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>406</onup>
+      <ondown>511</ondown>
+      <onleft>409</onleft>
+      <onright>413</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="413">
+      <left>1300</left>
+      <top>310</top>
+      <width>370</width>
+      <height>60</height>
+      <font>font_main</font>
+      <label>Upřesnit výběr</label>
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>406</onup>
+      <ondown>511</ondown>
+      <onleft>414</onleft>
+      <onright>413</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="430">
+      <left>250</left>
+      <top>440</top>
+      <width>460</width>
+      <height>56</height>
+      <font>font_mini</font>
+      <label />
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>407</onup>
+      <ondown>420</ondown>
+      <onleft>430</onleft>
+      <onright>431</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="431">
+      <left>730</left>
+      <top>440</top>
+      <width>460</width>
+      <height>56</height>
+      <font>font_mini</font>
+      <label />
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>407</onup>
+      <ondown>421</ondown>
+      <onleft>430</onleft>
+      <onright>432</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="432">
+      <left>1210</left>
+      <top>440</top>
+      <width>460</width>
+      <height>56</height>
+      <font>font_mini</font>
+      <label />
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>407</onup>
+      <ondown>422</ondown>
+      <onleft>431</onleft>
+      <onright>432</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="420">
+      <left>250</left>
+      <top>585</top>
+      <width>460</width>
+      <height>100</height>
+      <font>font_main_bold</font>
+      <label />
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>430</onup>
+      <ondown>423</ondown>
+      <onleft>420</onleft>
+      <onright>421</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="421">
+      <left>730</left>
+      <top>585</top>
+      <width>460</width>
+      <height>100</height>
+      <font>font_main_bold</font>
+      <label />
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>431</onup>
+      <ondown>424</ondown>
+      <onleft>420</onleft>
+      <onright>422</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="422">
+      <left>1210</left>
+      <top>585</top>
+      <width>460</width>
+      <height>100</height>
+      <font>font_main_bold</font>
+      <label />
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>432</onup>
+      <ondown>425</ondown>
+      <onleft>421</onleft>
+      <onright>422</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="423">
+      <left>250</left>
+      <top>705</top>
+      <width>460</width>
+      <height>100</height>
+      <font>font_main_bold</font>
+      <label />
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>420</onup>
+      <ondown>426</ondown>
+      <onleft>423</onleft>
+      <onright>424</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="424">
+      <left>730</left>
+      <top>705</top>
+      <width>460</width>
+      <height>100</height>
+      <font>font_main_bold</font>
+      <label />
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>421</onup>
+      <ondown>427</ondown>
+      <onleft>423</onleft>
+      <onright>425</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="425">
+      <left>1210</left>
+      <top>705</top>
+      <width>460</width>
+      <height>100</height>
+      <font>font_main_bold</font>
+      <label />
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>422</onup>
+      <ondown>428</ondown>
+      <onleft>424</onleft>
+      <onright>425</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="426">
+      <left>250</left>
+      <top>840</top>
+      <width>460</width>
+      <height>60</height>
+      <font>font_mini</font>
+      <label>Vybrat podle roku</label>
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>423</onup>
+      <ondown>404</ondown>
+      <onleft>426</onleft>
+      <onright>427</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="427">
+      <left>730</left>
+      <top>840</top>
+      <width>460</width>
+      <height>60</height>
+      <font>font_mini</font>
+      <label>Procházet všechny tituly</label>
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>424</onup>
+      <ondown>404</ondown>
+      <onleft>426</onleft>
+      <onright>428</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="428">
+      <left>1210</left>
+      <top>840</top>
+      <width>460</width>
+      <height>60</height>
+      <font>font_mini</font>
+      <label>Historie hledání</label>
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>425</onup>
+      <ondown>404</ondown>
+      <onleft>427</onleft>
+      <onright>428</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="415">
+      <left>360</left>
+      <top>790</top>
+      <width>250</width>
+      <height>50</height>
+      <font>font_mini</font>
+      <label>Podobné tituly</label>
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>404</onup>
+      <ondown>416</ondown>
+      <onleft>415</onleft>
+      <onright>401</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="416">
+      <left>360</left>
+      <top>850</top>
+      <width>250</width>
+      <height>50</height>
+      <font>font_mini</font>
+      <label>Obsazení</label>
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>415</onup>
+      <ondown>415</ondown>
+      <onleft>416</onleft>
+      <onright>404</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="417">
+      <left>250</left>
+      <top>860</top>
+      <width>460</width>
+      <height>60</height>
+      <font>font_main</font>
+      <label />
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>406</onup>
+      <ondown>404</ondown>
+      <onleft>417</onleft>
+      <onright>417</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="button" id="418">
+      <left>250</left>
+      <top>860</top>
+      <width>460</width>
+      <height>60</height>
+      <font>font_main</font>
+      <label />
+      <textcolor>FFE2E8F0</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <textoffsetx>22</textoffsetx>
+      <align>left</align>
+      <onup>406</onup>
+      <ondown>404</ondown>
+      <onleft>418</onleft>
+      <onright>418</onright>
+      <texturefocus border="16" colordiffuse="FF7BD9D1">family-button.png</texturefocus>
+      <texturenofocus border="16" colordiffuse="A0273246">family-button.png</texturenofocus>
+    </control>
+    <control type="label" id="611">
+      <left>250</left>
+      <top>390</top>
+      <width>1420</width>
+      <height>40</height>
+      <font>font_mini</font>
+      <textcolor>FFB6C3D4</textcolor>
+      <scroll>true</scroll>
+    </control>
+    <control type="label" id="612">
+      <left>250</left>
+      <top>525</top>
+      <width>1420</width>
+      <height>45</height>
+      <font>font_main_bold</font>
+      <textcolor>FFE2E8F0</textcolor>
+      <scroll>true</scroll>
+    </control>
+    <control type="label" id="613">
+      <left>250</left>
+      <top>390</top>
+      <width>1420</width>
+      <height>45</height>
+      <font>font_main</font>
+      <textcolor>FF7BD9D1</textcolor>
+      <scroll>true</scroll>
+    </control>
+    <control type="label" id="614">
+      <left>250</left>
+      <top>445</top>
+      <width>1420</width>
+      <height>35</height>
+      <font>font_mini</font>
+      <textcolor>FFB6C3D4</textcolor>
+      <scroll>true</scroll>
+    </control>
+    <control type="label" id="1">
+      <left>360</left>
+      <top>195</top>
+      <width>1200</width>
+      <height>60</height>
+      <font>font_main_bold</font>
+      <textcolor>FFFFFFFF</textcolor>
+      <scroll>true</scroll>
+    </control>
+    <control type="list" id="510">
+      <left>660</left>
+      <top>340</top>
+      <width>900</width>
+      <height>425</height>
+      <onup condition="String.IsEqual(Window.Property(family.view),search)">407</onup>
+      <ondown>404</ondown>
+      <onleft>404</onleft>
+      <onright>510</onright>
+      <scrolltime>180</scrolltime>
+      <orientation>vertical</orientation>
+      <itemlayout width="900" height="85">
+        <control type="image">
+          <left>0</left>
+          <top>0</top>
+          <width>900</width>
+          <height>81</height>
+          <texture border="16" colordiffuse="70202735">family-button.png</texture>
+        </control>
+        <control type="label">
+          <left>26</left>
+          <top>6</top>
+          <width>848</width>
+          <height>40</height>
+          <font>font_main</font>
+          <textcolor>FFE2E8F0</textcolor>
+          <label>$INFO[ListItem.Label]</label>
+          <scroll>false</scroll>
+        </control>
+        <control type="label">
+          <left>26</left>
+          <top>45</top>
+          <width>848</width>
+          <height>29</height>
+          <font>font_mini</font>
+          <textcolor>FFB6C3D4</textcolor>
+          <label>$INFO[ListItem.Label2]</label>
+          <scroll>false</scroll>
+        </control>
+      </itemlayout>
+      <focusedlayout width="900" height="85">
+        <control type="image">
+          <left>0</left>
+          <top>0</top>
+          <width>900</width>
+          <height>81</height>
+          <texture border="16" colordiffuse="D5294C54">family-button.png</texture>
+        </control>
+        <control type="label">
+          <left>26</left>
+          <top>6</top>
+          <width>848</width>
+          <height>40</height>
+          <font>font_main_bold</font>
+          <textcolor>FFFFFFFF</textcolor>
+          <label>$INFO[ListItem.Label]</label>
+          <scroll>true</scroll>
+        </control>
+        <control type="label">
+          <left>26</left>
+          <top>45</top>
+          <width>848</width>
+          <height>29</height>
+          <font>font_mini</font>
+          <textcolor>FFD3DFE6</textcolor>
+          <label>$INFO[ListItem.Label2]</label>
+          <scroll>true</scroll>
+        </control>
+      </focusedlayout>
+      <onup condition="!String.IsEqual(Window.Property(family.view),search)">404</onup>
+    </control>
+    <control type="button" id="404">
+      <left>660</left>
+      <top>800</top>
+      <width>900</width>
+      <height>60</height>
+      <font>font_main</font>
+      <textcolor>FFB6C3D4</textcolor>
+      <focusedcolor>FF111823</focusedcolor>
+      <texturefocus colordiffuse="FF7BD9D1" border="16">family-button.png</texturefocus>
+      <texturenofocus colordiffuse="B0273246" border="16">family-button.png</texturenofocus>
+      <textoffsetx>26</textoffsetx>
+      <align>left</align>
+      <onleft condition="String.IsEqual(Window.Property(family.view),info)">530</onleft>
+      <onleft condition="!String.IsEqual(Window.Property(family.view),info)">404</onleft>
+    </control>
+    <control type="label" id="4">
+      <left>660</left>
+      <top>765</top>
+      <width>900</width>
+      <height>30</height>
+      <font>font_mini</font>
+      <textcolor>FFB6C3D4</textcolor>
+      <scroll>false</scroll>
+    </control>
+    <control type="progress" id="520">
+      <left>660</left>
+      <top>740</top>
+      <width>900</width>
+      <height>6</height>
+      <texturebg colordiffuse="FF273246">family-white.png</texturebg>
+      <midtexture colordiffuse="FF7BD9D1">family-white.png</midtexture>
+      <lefttexture />
+      <righttexture />
+      <overlaytexture />
+    </control>
+    <control type="list" id="512">
+      <left>250</left>
+      <top>350</top>
+      <width>1420</width>
+      <height>500</height>
+      <scrolltime>180</scrolltime>
+      <orientation>vertical</orientation>
+      <itemlayout width="1420" height="85">
+        <control type="image">
+          <left>0</left>
+          <top>0</top>
+          <width>1420</width>
+          <height>81</height>
+          <texture border="16" colordiffuse="70202735">family-button.png</texture>
+        </control>
+        <control type="label">
+          <left>26</left>
+          <top>6</top>
+          <width>1368</width>
+          <height>40</height>
+          <font>font_main</font>
+          <textcolor>FFE2E8F0</textcolor>
+          <label>$INFO[ListItem.Label]</label>
+          <scroll>false</scroll>
+        </control>
+        <control type="label">
+          <left>26</left>
+          <top>45</top>
+          <width>1368</width>
+          <height>29</height>
+          <font>font_mini</font>
+          <textcolor>FFB6C3D4</textcolor>
+          <label>$INFO[ListItem.Label2]</label>
+          <scroll>false</scroll>
+        </control>
+      </itemlayout>
+      <focusedlayout width="1420" height="85">
+        <control type="image">
+          <left>0</left>
+          <top>0</top>
+          <width>1420</width>
+          <height>81</height>
+          <texture border="16" colordiffuse="D5294C54">family-button.png</texture>
+        </control>
+        <control type="label">
+          <left>26</left>
+          <top>6</top>
+          <width>1368</width>
+          <height>40</height>
+          <font>font_main_bold</font>
+          <textcolor>FFFFFFFF</textcolor>
+          <label>$INFO[ListItem.Label]</label>
+          <scroll>true</scroll>
+        </control>
+        <control type="label">
+          <left>26</left>
+          <top>45</top>
+          <width>1368</width>
+          <height>29</height>
+          <font>font_mini</font>
+          <textcolor>FFD3DFE6</textcolor>
+          <label>$INFO[ListItem.Label2]</label>
+          <scroll>true</scroll>
+        </control>
+      </focusedlayout>
+      <onup>404</onup>
+      <ondown>404</ondown>
+      <onleft>404</onleft>
+      <onright>512</onright>
+    </control>
+    <control type="panel" id="511">
+      <left>250</left>
+      <top>490</top>
+      <width>1420</width>
+      <height>380</height>
+      <orientation>vertical</orientation>
+      <onup>407</onup>
+      <ondown>404</ondown>
+      <onleft>404</onleft>
+      <onright>511</onright>
+      <scrolltime>180</scrolltime>
+      <itemlayout width="470" height="185">
+        <control type="image">
+          <left>4</left>
+          <top>4</top>
+          <width>458</width>
+          <height>174</height>
+          <texture border="16" colordiffuse="A0273246">family-button.png</texture>
+        </control>
+        <control type="image">
+          <left>16</left>
+          <top>16</top>
+          <width>100</width>
+          <height>150</height>
+          <aspectratio>keep</aspectratio>
+          <texture fallback="DefaultVideo.png">$INFO[ListItem.Art(poster)]</texture>
+        </control>
+        <control type="image">
+          <left>82</left>
+          <top>131</top>
+          <width>28</width>
+          <height>28</height>
+          <visible>String.IsEqual(ListItem.Property(family.movie.watched),true)</visible>
+          <texture border="12" colordiffuse="DF111823">family-button.png</texture>
+        </control>
+        <control type="label">
+          <left>82</left>
+          <top>130</top>
+          <width>28</width>
+          <height>28</height>
+          <font>font_mini</font>
+          <textcolor>FFE2E8F0</textcolor>
+          <align>center</align>
+          <aligny>center</aligny>
+          <label>✓</label>
+          <visible>String.IsEqual(ListItem.Property(family.movie.watched),true)</visible>
+        </control>
+        <control type="progress">
+          <left>16</left>
+          <top>162</top>
+          <width>100</width>
+          <height>4</height>
+          <info>ListItem.Property(family.movie.progress)</info>
+          <visible>!String.IsEmpty(ListItem.Property(family.movie.progress))</visible>
+          <texturebg colordiffuse="B3111823">family-white.png</texturebg>
+          <midtexture colordiffuse="FF7BD9D1">family-white.png</midtexture>
+          <lefttexture />
+          <righttexture />
+          <overlaytexture />
+        </control>
+        <control type="textbox">
+          <left>132</left>
+          <top>20</top>
+          <width>310</width>
+          <height>90</height>
+          <font>font_main_bold</font>
+          <textcolor>FFFFFFFF</textcolor>
+          <label>$INFO[ListItem.Label]</label>
+          <autoscroll>false</autoscroll>
+        </control>
+        <control type="label">
+          <left>132</left>
+          <top>126</top>
+          <width>310</width>
+          <height>38</height>
+          <font>font_mini</font>
+          <textcolor>FFD3DFE6</textcolor>
+          <label>$INFO[ListItem.Label2]</label>
+          <scroll>false</scroll>
+        </control>
+      </itemlayout>
+      <focusedlayout width="470" height="185">
+        <control type="image">
+          <left>4</left>
+          <top>4</top>
+          <width>458</width>
+          <height>174</height>
+          <texture border="16" colordiffuse="FF32646A">family-button.png</texture>
+        </control>
+        <control type="image">
+          <left>4</left>
+          <top>4</top>
+          <width>458</width>
+          <height>174</height>
+          <texture border="16" colordiffuse="FF7BD9D1">family-panel-edge.png</texture>
+        </control>
+        <control type="image">
+          <left>16</left>
+          <top>16</top>
+          <width>100</width>
+          <height>150</height>
+          <aspectratio>keep</aspectratio>
+          <texture fallback="DefaultVideo.png">$INFO[ListItem.Art(poster)]</texture>
+        </control>
+        <control type="image">
+          <left>82</left>
+          <top>131</top>
+          <width>28</width>
+          <height>28</height>
+          <visible>String.IsEqual(ListItem.Property(family.movie.watched),true)</visible>
+          <texture border="12" colordiffuse="DF111823">family-button.png</texture>
+        </control>
+        <control type="label">
+          <left>82</left>
+          <top>130</top>
+          <width>28</width>
+          <height>28</height>
+          <font>font_mini</font>
+          <textcolor>FFE2E8F0</textcolor>
+          <align>center</align>
+          <aligny>center</aligny>
+          <label>✓</label>
+          <visible>String.IsEqual(ListItem.Property(family.movie.watched),true)</visible>
+        </control>
+        <control type="progress">
+          <left>16</left>
+          <top>162</top>
+          <width>100</width>
+          <height>4</height>
+          <info>ListItem.Property(family.movie.progress)</info>
+          <visible>!String.IsEmpty(ListItem.Property(family.movie.progress))</visible>
+          <texturebg colordiffuse="B3111823">family-white.png</texturebg>
+          <midtexture colordiffuse="FF7BD9D1">family-white.png</midtexture>
+          <lefttexture />
+          <righttexture />
+          <overlaytexture />
+        </control>
+        <control type="textbox">
+          <left>132</left>
+          <top>20</top>
+          <width>310</width>
+          <height>90</height>
+          <font>font_main_bold</font>
+          <textcolor>FFFFFFFF</textcolor>
+          <label>$INFO[ListItem.Label]</label>
+          <autoscroll>false</autoscroll>
+        </control>
+        <control type="label">
+          <left>132</left>
+          <top>126</top>
+          <width>310</width>
+          <height>38</height>
+          <font>font_mini</font>
+          <textcolor>FFD3DFE6</textcolor>
+          <label>$INFO[ListItem.Label2]</label>
+          <scroll>true</scroll>
+        </control>
+      </focusedlayout>
+    </control>
+  </controls>
+  <backgroundcolor>00000000</backgroundcolor>
+</window>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window type="window" id="1105">
+  <onload>RunScript(script.michal.family.repair,search_entry)</onload>
+  <include content="Hub_Onload"><param name="window_id">1105</param></include>
+  <defaultcontrol always="true">300</defaultcontrol>
+  <controls>
+    <include>Hub_Window_Background</include>
+    <include content="Home_Control">
+      <param name="window">1105</param>
+      <param name="overlay">[false]</param>
+    </include>
+    <control type="label">
+      <left>360</left><top>330</top><width>1200</width><height>70</height>
+      <font>font_main_bold</font><textcolor>FFFFFFFF</textcolor><label>Co si dnes pustíme?</label>
+    </control>
+    <control type="label">
+      <left>360</left><top>420</top><width>1200</width><height>50</height>
+      <font>font_main</font><textcolor>FFB6C3D4</textcolor><label>Filmy a seriály · české i původní názvy · herci</label>
+    </control>
+    <control type="button" id="3001">
+      <left>360</left><top>510</top><width>1200</width><height>90</height>
+      <font>font_main_bold</font><label>Hledat film nebo seriál</label><textoffsetx>26</textoffsetx>
+      <textcolor>FFFFFFFF</textcolor><focusedcolor>FF111823</focusedcolor>
+      <texturefocus colordiffuse="FF7BD9D1" border="16">special://home/addons/plugin.video.webshare.available/resources/skins/Default/media/family-button.png</texturefocus>
+      <texturenofocus colordiffuse="80273246" border="16">special://home/addons/plugin.video.webshare.available/resources/skins/Default/media/family-button.png</texturenofocus>
+      <onup>300</onup><onleft>300</onleft><onright>300</onright><ondown>300</ondown>
+      <onclick>RunScript(script.michal.family.repair,search_entry)</onclick>
+    </control>
+  </controls>
+</window>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings>
+    <category label="ČSFD">
+        <setting id="atlas_api_key" type="text" label="Klíč Atlasu" default="" option="hidden" visible="false" />
+    </category>
+</settings>

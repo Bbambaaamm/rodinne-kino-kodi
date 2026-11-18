@@ -1,0 +1,81 @@
+msgid ""
+msgstr ""
+"Language: cs_CZ\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgctxt "#31001"
+msgid "In-Progress Episodes"
+msgstr "Rozkoukané epizody"
+
+msgctxt "#31018"
+msgid "Recommendations"
+msgstr "Pro tebe"
+
+msgctxt "#31023"
+msgid "Loading"
+msgstr "Načítání"
+
+msgctxt "#31027"
+msgid "Focus widgets on startup"
+msgstr "Po spuštění vybrat obsah"
+
+msgctxt "#31032"
+msgid "Apply"
+msgstr "Použít"
+
+msgctxt "#31041"
+msgid "Similar"
+msgstr "Podobné tituly"
+
+msgctxt "#31046"
+msgid "No Results"
+msgstr "Žádné výsledky"
+
+msgctxt "#31053"
+msgid "Profile"
+msgstr "Profil"
+
+msgctxt "#31066"
+msgid "Discover"
+msgstr "Objevovat"
+
+msgctxt "#31069"
+msgid "Background video"
+msgstr "Video na pozadí"
+
+msgctxt "#31073"
+msgid "mins"
+msgstr "min"
+
+msgctxt "#31074"
+msgid "hr"
+msgstr "h"
+
+msgctxt "#31077"
+msgid "More Information"
+msgstr "Informace"
+
+msgctxt "#31084"
+msgid "Preload hubs during startup initialisation"
+msgstr "Přednačíst hlavní nabídky"
+
+msgctxt "#31090"
+msgid "In-Progress"
+msgstr "Pokračovat"
+
+msgctxt "#31092"
+msgid "Detailed information"
+msgstr "Podrobnosti"
+
+msgctxt "#31136"
+msgid "Browse"
+msgstr "Řady a díly"
+
+msgctxt "#31144"
+msgid "Play"
+msgstr "Otevřít titul"
+
+msgctxt "#31600"
+msgid "Ends at"
+msgstr "Konec v"
+

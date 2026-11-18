@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="repository.rodinne.kino" name="Rodinné kino" version="1.0.0" provider-name="Rodinné kino">
+  <extension point="xbmc.addon.repository" name="Rodinné kino">
+    <dir minversion="21.0.0">
+      <info>https://raw.githubusercontent.com/Bbambaaamm/rodinne-kino-kodi/main/dist/addons.xml</info>
+      <checksum>https://raw.githubusercontent.com/Bbambaaamm/rodinne-kino-kodi/main/dist/addons.xml.sha256</checksum>
+      <datadir>https://raw.githubusercontent.com/Bbambaaamm/rodinne-kino-kodi/main/dist/</datadir>
+      <hashes>false</hashes>
+    </dir>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="cs_CZ">Instalace a aktualizace Rodinného kina.</summary>
+    <platform>all</platform>
+    <license>MIT</license>
+    <source>https://github.com/Bbambaaamm/rodinne-kino-kodi</source>
+  </extension>
+</addon>

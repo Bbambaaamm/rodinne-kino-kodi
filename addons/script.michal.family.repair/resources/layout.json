@@ -1,0 +1,349 @@
+{
+  "nodes": {
+    "homewidgets": [
+      {
+        "label": "Pokračovat – filmy",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=movie&source=playback&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_movie_playback)]&rev=$INFO[Window(Home).Property(Family.Paging.Revision)]&refresh=$INFO[Window(Home).Property(Family.Paging.Display.Version.list_movie_playback)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "michal-home-movie-inprogress"
+      },
+      {
+        "label": "Rozkoukané epizody",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=episode&source=playback&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_episode_playback)]&rev=$INFO[Window(Home).Property(Family.Paging.Revision)]&refresh=$INFO[Window(Home).Property(Family.Paging.Display.Version.list_episode_playback)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "michal-home-tv-playback"
+      },
+      {
+        "label": "Další epizody",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=episode&source=next&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_episode_next)]&rev=$INFO[Window(Home).Property(Family.Paging.Revision)]&refresh=$INFO[Window(Home).Property(Family.Paging.Display.Version.list_episode_next)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "michal-home-tv-next"
+      },
+      {
+        "label": "Filmy pro tebe",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=movie&source=recommendations&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_movie_recommendations)]&refresh=$INFO[Window(Home).Property(Family.Paging.Display.Version.list_movie_recommendations)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "michal-home-movie-recommendations"
+      },
+      {
+        "label": "Seriály pro tebe",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=tv&source=recommendations&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_tv_recommendations)]&refresh=$INFO[Window(Home).Property(Family.Paging.Display.Version.list_tv_recommendations)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "michal-home-tv-recommendations"
+      },
+      {
+        "label": "Trendy filmy",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=movie&source=trending&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_movie_trending)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "michal-home-movie-trending"
+      },
+      {
+        "label": "Trendy seriály",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=tv&source=trending&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_tv_trending)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "michal-home-tv-trending"
+      }
+    ],
+    "1101widgets": [
+      {
+        "label": "Pro tebe",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=movie&source=recommendations&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_movie_recommendations)]&refresh=$INFO[Window(Home).Property(Family.Paging.Display.Version.list_movie_recommendations)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "webshare-movie-recommendations"
+      },
+      {
+        "label": "Chci vidět",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=movie&source=watchlist&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_movie_watchlist)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "webshare-movie-watchlist"
+      },
+      {
+        "label": "Trendy",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=movie&source=trending&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_movie_trending)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "webshare-movie-trending"
+      },
+      {
+        "label": "Populární",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=movie&source=popular&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_movie_popular)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "webshare-movie-popular"
+      },
+      {
+        "label": "V kinech",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=movie&source=now_playing&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_movie_now_playing)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "webshare-movie-now-playing"
+      },
+      {
+        "label": "Top hodnocené",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=movie&source=top_rated&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_movie_top_rated)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "webshare-movie-top-rated"
+      }
+    ],
+    "1102widgets": [
+      {
+        "label": "Další epizody",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=episode&source=next&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_episode_next)]&rev=$INFO[Window(Home).Property(Family.Paging.Revision)]&refresh=$INFO[Window(Home).Property(Family.Paging.Display.Version.list_episode_next)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "webshare-tv-next"
+      },
+      {
+        "label": "Rozkoukané epizody",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=episode&source=playback&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_episode_playback)]&rev=$INFO[Window(Home).Property(Family.Paging.Revision)]&refresh=$INFO[Window(Home).Property(Family.Paging.Display.Version.list_episode_playback)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "webshare-tv-playback"
+      },
+      {
+        "label": "Pro tebe",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=tv&source=recommendations&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_tv_recommendations)]&refresh=$INFO[Window(Home).Property(Family.Paging.Display.Version.list_tv_recommendations)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "webshare-tv-recommendations"
+      },
+      {
+        "label": "Chci vidět",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=tv&source=watchlist&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_tv_watchlist)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "webshare-tv-watchlist"
+      },
+      {
+        "label": "Trendy",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=tv&source=trending&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_tv_trending)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "webshare-tv-trending"
+      },
+      {
+        "label": "Populární",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=tv&source=popular&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_tv_popular)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "webshare-tv-popular"
+      },
+      {
+        "label": "Dnes vysílané",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=list&kind=tv&source=airing_today&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.list_tv_airing_today)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "webshare-tv-airing-today"
+      }
+    ],
+    "1103widgets": [
+      {
+        "label": "Chci vidět – filmy",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=personal&kind=movie&source=watchlist&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.personal_movie_watchlist)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "michal-1103w-d6c6a6f9c7"
+      },
+      {
+        "label": "Chci vidět – seriály",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=personal&kind=tv&source=watchlist&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.personal_tv_watchlist)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "michal-1103w-cb07f9cfd6"
+      },
+      {
+        "label": "Sbírka – filmy",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=personal&kind=movie&source=collection&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.personal_movie_collection)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "michal-1103w-717173923a"
+      },
+      {
+        "label": "Sbírka – seriály",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=personal&kind=tv&source=collection&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.personal_tv_collection)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "michal-1103w-1880035285"
+      },
+      {
+        "label": "Historie",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=personal&kind=both&source=history&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.personal_both_history)]&rev=$INFO[Window(Home).Property(Family.Paging.Revision)]",
+        "target": "videos",
+        "widget_limit": "0",
+        "widget_sortby": "default",
+        "guid": "michal-1103w-11ab816d16"
+      }
+    ],
+    "homesubmenu": [],
+    "1101submenu": [
+      {
+        "label": "Žánry",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=catalog&kind=movie&section=genres",
+        "target": "videos",
+        "guid": "michal-1101s-410508df3d"
+      },
+      {
+        "label": "Připravované",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=catalog&kind=movie&section=upcoming",
+        "target": "videos",
+        "guid": "michal-1101s-f45b42d162"
+      },
+      {
+        "label": "V kinech",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=catalog&kind=movie&section=now_playing",
+        "target": "videos",
+        "guid": "michal-1101s-3e43b4973d"
+      }
+    ],
+    "1102submenu": [
+      {
+        "label": "Žánry",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=catalog&kind=tv&section=genres",
+        "target": "videos",
+        "guid": "michal-1102s-a424b1e87e"
+      },
+      {
+        "label": "Dnes vysílané",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=catalog&kind=tv&section=airing_today",
+        "target": "videos",
+        "guid": "michal-1102s-38088261a3"
+      },
+      {
+        "label": "Právě vysílané",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=catalog&kind=tv&section=on_the_air",
+        "target": "videos",
+        "guid": "michal-1102s-3865a54113"
+      }
+    ],
+    "1103submenu": [
+      {
+        "label": "Servis",
+        "icon": "",
+        "path": "RunScript(script.michal.family.repair,menu)",
+        "target": "",
+        "guid": "michal-1103s-39dd224372"
+      },
+      {
+        "label": "Historie",
+        "icon": "",
+        "path": "plugin://plugin.video.webshare.available/?action=personal&kind=both&source=history&infinite=1&count=$INFO[Window(Home).Property(Family.Paging.Count.personal_both_history)]&rev=$INFO[Window(Home).Property(Family.Paging.Revision)]",
+        "target": "videos",
+        "guid": "michal-1103s-e4d6713ab2"
+      }
+    ]
+  },
+  "strings": {
+    "HomeSwitcher.Home.Name": "Domů",
+    "HomeSwitcher.1101.Name": "Filmy",
+    "HomeSwitcher.1102.Name": "Seriály",
+    "HomeSwitcher.1103.Name": "Moje",
+    "HomeSwitcher.1101.Toggle": "true",
+    "HomeSwitcher.1102.Toggle": "true",
+    "HomeSwitcher.1103.Toggle": "true",
+    "HomeSwitcher.Home.Mode": "Combined",
+    "HomeSwitcher.1101.Mode": "Combined",
+    "HomeSwitcher.1102.Mode": "Combined",
+    "HomeSwitcher.1103.Mode": "Combined",
+    "HomeSwitcher.Search.Mode": "Combined",
+    "HomeSwitcher.Home.Spotlight.Label": "Pro tebe",
+    "HomeSwitcher.Home.Spotlight.Path": "plugin://plugin.video.webshare.available/?action=list&kind=movie&source=recommendations",
+    "HomeSwitcher.Home.Spotlight.Target": "videos",
+    "HomeSwitcher.Home.Spotlight.Limit": "15",
+    "HomeSwitcher.Home.Spotlight.SortMethod": "default",
+    "HomeSwitcher.1101.Spotlight.Label": "Pro tebe",
+    "HomeSwitcher.1101.Spotlight.Path": "plugin://plugin.video.webshare.available/?action=list&kind=movie&source=recommendations",
+    "HomeSwitcher.1101.Spotlight.Target": "videos",
+    "HomeSwitcher.1101.Spotlight.Limit": "15",
+    "HomeSwitcher.1101.Spotlight.SortMethod": "default",
+    "HomeSwitcher.1102.Spotlight.Label": "Pro tebe",
+    "HomeSwitcher.1102.Spotlight.Path": "plugin://plugin.video.webshare.available/?action=list&kind=tv&source=recommendations",
+    "HomeSwitcher.1102.Spotlight.Target": "videos",
+    "HomeSwitcher.1102.Spotlight.Limit": "15",
+    "HomeSwitcher.1102.Spotlight.SortMethod": "default",
+    "HomeSwitcher.1103.Spotlight.Label": "Chci vidět – filmy",
+    "HomeSwitcher.1103.Spotlight.Path": "plugin://plugin.video.webshare.available/?action=personal&kind=movie&source=watchlist",
+    "HomeSwitcher.1103.Spotlight.Target": "videos",
+    "HomeSwitcher.1103.Spotlight.Limit": "12",
+    "HomeSwitcher.1103.Spotlight.SortMethod": "default"
+  },
+  "bools": {
+    "Navigation.DisableCategoriesSelectDialog": true,
+    "Startup.EnableHubPreloading": true,
+    "Startup.DisableWaitForLoad": false,
+    "Textboxes.DisableFakeBox": false,
+    "HomeSwitcher.DisableFirstWidgetFocus": false,
+    "HomeSwitcher.DisableSearch": false,
+    "TMDbHelper.EnableData": true,
+    "TMDbHelper.EnableCrop": true,
+    "TMDbHelper.EnableBlur": true,
+    "TMDbHelper.Service": true,
+    "TMDbHelper.UseLocalWidgetContainer": true,
+    "TMDbHelper.EnableCurrentWindowImages": true,
+    "TMDbHelper.DirectCallAuto": true
+  }
+}

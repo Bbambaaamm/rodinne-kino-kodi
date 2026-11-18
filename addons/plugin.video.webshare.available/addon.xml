@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<addon id="plugin.video.webshare.available" name="Rodinné kino – filmy a seriály" version="0.9.13" provider-name="Michal">
+  <requires>
+    <import addon="xbmc.python" version="3.0.0" />
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="default.py">
+    <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="cs_CZ">Jednotné karty titulů, osobní seznamy a ověřené přehrávání.</summary>
+    <description lang="cs_CZ">Rodinné ovládání s přesnou kontrolou seriálu a dílu, českým zvukem a 1080p jako výchozí volbou.</description>
+    <platform>all</platform>
+    <license>MIT</license>
+    <reuselanguageinvoker>false</reuselanguageinvoker>
+  </extension>
+</addon>
