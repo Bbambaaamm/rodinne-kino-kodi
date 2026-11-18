@@ -74,11 +74,33 @@ def main():
 
     index = ET.Element('addons')
     index.append(write_addon(INSTALLER, installer))
-    index.append(write_addon(REPOSITORY, source_files(REPOSITORY)))
+    repository = write_addon(REPOSITORY, source_files(REPOSITORY))
+    index.append(repository)
     ET.indent(index, space='  ')
     metadata = ET.tostring(index, encoding='utf-8', xml_declaration=True)
     (DIST / 'addons.xml').write_bytes(metadata)
     (DIST / 'addons.xml.sha256').write_text(sha256(metadata).hexdigest() + '\n', encoding='ascii', newline='\n')
+
+    # Kodi's HTTP directory parser needs matching relative link and label text.
+    # Publish only the small repository ZIP in the installation source.
+    site = ROOT / 'docs'
+    site.mkdir(exist_ok=True)
+    filename = f'{REPOSITORY}-{repository.attrib["version"]}.zip'
+    archive = (DIST / REPOSITORY / filename).read_bytes()
+    (site / filename).write_bytes(archive)
+    (site / 'index.html').write_text(f'''<!doctype html>
+<html lang="cs">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Rodinné kino pro Kodi</title></head>
+<body>
+<h1>Rodinné kino pro Kodi</h1>
+<p>Instalační zdroj pro Kodi 21 Omega.</p>
+<pre><a href="{filename}">{filename}</a> {len(archive)} B</pre>
+<p>Vyber tento ZIP v Kodi přes Doplňky → Instalovat ze souboru ZIP.</p>
+<p>Potom otevři Instalovat z repozitáře → Rodinné kino → Programové doplňky → Rodinné kino – instalace a servis.</p>
+<p><a href="https://github.com/Bbambaaamm/rodinne-kino-kodi#instalace">Návod k instalaci</a></p>
+</body>
+</html>
+''', encoding='utf-8', newline='\n')
 
 
 if __name__ == '__main__':
