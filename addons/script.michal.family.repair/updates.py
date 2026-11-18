@@ -60,7 +60,7 @@ class Snapshot:
             saved = os.path.join(self.path, str(index))
             exists = os.path.isfile(target)
             if exists:
-                shutil.copy2(target, saved)
+                shutil.copyfile(target, saved)
             self.files.append({'target': target, 'saved': saved, 'exists': exists})
         self.settings['kodi'] = {key: m.rpc('Settings.GetSettingValue', {'setting': key})['value']
                                  for key in ('general.addonupdates', 'filelists.showparentdiritems', 'locale.audiolanguage',
@@ -81,7 +81,7 @@ class Snapshot:
             if entry['exists']:
                 os.makedirs(os.path.dirname(target), exist_ok=True)
                 temporary = target + '.family-restore'
-                shutil.copy2(entry['saved'], temporary)
+                shutil.copyfile(entry['saved'], temporary)
                 os.replace(temporary, target)
             elif os.path.isfile(target):
                 os.remove(target)

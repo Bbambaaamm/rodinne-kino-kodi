@@ -33,10 +33,10 @@ def backup():
     for relative, source in saved_paths:
         target = maintenance.local_path(os.path.join(destination, relative))
         if os.path.isdir(source):
-            shutil.copytree(source, target, ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+            maintenance.copy_tree(source, target)
         elif os.path.isfile(source):
             os.makedirs(os.path.dirname(target), exist_ok=True)
-            shutil.copy2(source, target)
+            shutil.copyfile(source, target)
     result = {'path': destination}
     maintenance.write_json(pointer, result)
     return result

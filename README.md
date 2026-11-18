@@ -6,7 +6,7 @@
 
 Pro **Kodi 21 Omega** stačí stáhnout jeden ZIP. Při prvním spuštění instalátor obstará Arctic Fuse 3 a jeho závislosti, Webshare – YAWSP, Trakt a češtinu. Poté aktivuje vzhled a připraví nabídky, vzhled karet, hledání, postupné načítání, ovládání Zpět a přehrávač podle domácí sestavy na Homaticsu. Instalace potřebuje internet.
 
-1. Stáhni [kompletní instalační ZIP Rodinného kina 1.8.1](https://raw.githubusercontent.com/Bbambaaamm/rodinne-kino-kodi/main/dist/script.michal.family.repair/script.michal.family.repair-1.8.1.zip). V Kodi dej **Doplňky → Instalovat ze souboru ZIP** a vyber stažený soubor. Pro ruční instalaci ZIP povol **Neznámé zdroje**.
+1. Stáhni [kompletní instalační ZIP Rodinného kina 1.8.2](https://raw.githubusercontent.com/Bbambaaamm/rodinne-kino-kodi/main/dist/script.michal.family.repair/script.michal.family.repair-1.8.2.zip). V Kodi dej **Doplňky → Instalovat ze souboru ZIP** a vyber stažený soubor. Pro ruční instalaci ZIP povol **Neznámé zdroje**.
 2. Otevři **Programové doplňky → Rodinné kino – instalace a servis** a potvrď instalaci. Kodi může vyžádat potvrzení instalace jednotlivých součástí a přepnutí na Arctic Fuse 3. Instalační postup uloží místní zálohu nastavení a své změny zaznamená pro obnovu. Pro aktuální závislosti vzhledu povolí aktualizace z libovolného repozitáře. Automatické dotazy Traktu na hodnocení vypne stejně jako v domácí sestavě.
 3. Přihlas své účty v **Moje → Servis → Otevřít přihlášení Webshare** a **Otevřít přihlášení Trakt**. Trakt připoj také v nastavení **Doplňky → Programové doplňky → Trakt**, aby se zaznamenávalo přehrávání. U nového TMDb Helperu instalátor doplní samostatnou integraci Trakt.
 4. V **Moje → Servis → Kontrola rodinného kina** ověř sestavu. ČSFD lze zapnout pod **Hodnocení ČSFD – Atlas** s vlastním klíčem a tarifem podporujícím ČSFD.
@@ -43,5 +43,13 @@ Prošlo 162 stávajících kontrol filmového doplňku a 34 kontrol instalátoru
 V odděleném Kodi 21.3 na PC byla dokončena výchozí instalace 1.8.0 s Arctic Fuse 3 verze 3.5.4 a filmovým doplňkem 0.9.14. Při nativní kontrole veřejného repozitáře Kodi automaticky stáhlo 1.8.1. Za pozastaveného místního testovacího videa zůstaly úpravy čekat. Po ukončení videa se samy použily soubory vzhledu 1.8.1 a filmový doplněk 0.9.15.
 
 Byla ověřena shoda všech 30 souborů filmového doplňku, osmi definic nabídek a okna hledání s vydaným balíčkem. Po restartu Kodi služba opět běžela a již dokončená sestava se znovu nepoužila. Osobní seznamy a přehrávání Webshare používají vlastní účty připojené v cílovém Kodi.
+
+## Oprava zálohování 1.8.2
+
+Zálohování, úpravy vzhledu a obnova kopírují obsah souborů bez přenosu časů a oprávnění. Tím se odstraňuje chyba `Permission denied` při nastavování vlastností zálohovaných složek na sdíleném úložišti Androidu. Skutečné odmítnutí čtení nebo zápisu dál instalaci zastaví a neoznačí neúplnou zálohu za hotovou.
+
+Prošlo 40 kontrol instalátoru. Šest kontrol pokrývá prázdnou složku `keymaps`, vnořené soubory, zachování původní zálohy, opakování po skutečném odmítnutí zápisu a obnovu předchozího obsahu včetně automatických aktualizací. Omezení zápisu vlastností byla při kontrolách simulována; dokončení instalace na konkrétní televizi je nutné ověřit po aktualizaci.
+
+Pokud se instalace zastavila při zálohování, v Kodi vyhledej aktualizace repozitáře Rodinné kino, aktualizuj doplněk **Rodinné kino – instalace a servis** alespoň na 1.8.2 a znovu jej spusť. Nainstalované součásti zůstanou zachované a instalační postup je zkontroluje. Data Kodi není potřeba mazat.
 
 Původní kód Rodinného kina je pod licencí MIT. Arctic Fuse 3 je dílo [jurialmunkey](https://github.com/jurialmunkey/skin.arctic.fuse.3) pod licencí [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Instalátor přidává úpravy do místně nainstalovaného vzhledu a jeho vlastní soubory zůstávají pod původní licencí. Webshare, Trakt a další služby spravují jejich provozovatelé.

@@ -42,6 +42,19 @@ def local_path(path):
         return '\\\\?\\UNC\\' + path[2:]
     return '\\\\?\\' + path
 
+def copy_tree(source, target):
+    """Copy content without changing timestamps or permissions on shared storage."""
+    os.makedirs(target, exist_ok=True)
+    with os.scandir(source) as entries:
+        for entry in entries:
+            if entry.name == '__pycache__' or entry.name.endswith('.pyc'):
+                continue
+            destination = os.path.join(target, entry.name)
+            if entry.is_dir():
+                copy_tree(entry.path, destination)
+            else:
+                shutil.copyfile(entry.path, destination)
+
 ADDON = xbmcaddon.Addon(ID)
 VERSION = ADDON.getAddonInfo('version')
 PATH = local_path(xbmcvfs.translatePath(ADDON.getAddonInfo('path')))
@@ -332,7 +345,7 @@ def ratings_skin_patch():
     os.makedirs(backup, exist_ok=True)
     previous = os.path.join(backup, name)
     if not os.path.isfile(previous):
-        shutil.copy2(path, previous)
+        shutil.copyfile(path, previous)
     temporary = path + '.family-new'
     with open(temporary, 'w', encoding='utf-8') as target:
         target.write(updated)
@@ -393,7 +406,7 @@ def movie_progress_skin_patch():
     os.makedirs(backup, exist_ok=True)
     previous = os.path.join(backup, name)
     if not os.path.isfile(previous):
-        shutil.copy2(path, previous)
+        shutil.copyfile(path, previous)
     temporary = path + '.family-new'
     with open(temporary, 'w', encoding='utf-8') as target:
         target.write(updated)
@@ -426,7 +439,7 @@ def search_patch():
     for name, path, _ in changes:
         previous = os.path.join(backup, name)
         if not os.path.isfile(previous):
-            shutil.copy2(path, previous)
+            shutil.copyfile(path, previous)
     for _, path, updated in changes:
         temporary = path + '.family-new'
         with open(temporary, 'w', encoding='utf-8') as f:
@@ -462,7 +475,7 @@ def paging_patch():
         if updated:
             backupfile=os.path.join(backuproot,filename)
             if not os.path.isfile(backupfile):
-                os.makedirs(backuproot,exist_ok=True);shutil.copy2(path,backupfile)
+                os.makedirs(backuproot,exist_ok=True);shutil.copyfile(path,backupfile)
             write_json(path,rows);HOME.clearProperty('SkinVariables.ShortcutsNode.skin.arctic.fuse.3-'+filename);changed=True
     if changed:
         HOME.setProperty('SkinVariables.ShortcutsNode.Reload',str(time.time()));rebuild_layout()
@@ -771,7 +784,7 @@ def patch_streaming_templates():
         backup = streaming_template_backup(name)
         os.makedirs(os.path.dirname(backup), exist_ok=True)
         if not os.path.isfile(backup):
-            shutil.copy2(path, backup)
+            shutil.copyfile(path, backup)
         temporary = path + '.family-new'
         with open(temporary, 'w', encoding='utf-8') as target:
             target.write(updated)
@@ -805,7 +818,7 @@ def configure_streaming_hub(manifest):
     for filename in (hubs_file, widgets_file):
         previous = os.path.join(backup, os.path.basename(filename))
         if os.path.isfile(filename) and not os.path.isfile(previous):
-            shutil.copy2(filename, previous)
+            shutil.copyfile(filename, previous)
     url = 'plugin://' + PROVIDER + '/?action=streaming&view=cards'
     hub.update(label=STREAMING_LABEL, icon='special://skin/extras/icons/livetv.png',
                path='SetFocus(601)', target='', disabled='')
@@ -1367,7 +1380,7 @@ def rollback():
                 raise RuntimeError('Rollback path is outside the provider')
             if not os.path.isfile(original) and os.path.isfile(target):
                 os.remove(target)
-        shutil.copytree(src, dst, dirs_exist_ok=True)
+        copy_tree(src, dst)
     elif os.path.isfile(os.path.join(dst, 'addon.xml')):
         rpc('Addons.SetAddonEnabled', {'addonid': PROVIDER, 'enabled': False})
     original_nodes = os.path.join(baseline, 'userdata', 'addon_data', 'script.skinvariables', 'nodes', 'skin.arctic.fuse.3')
@@ -1379,7 +1392,7 @@ def rollback():
         target = os.path.join(nodes_dir, name)
         if os.path.isfile(original):
             os.makedirs(nodes_dir, exist_ok=True)
-            shutil.copy2(original, target)
+            shutil.copyfile(original, target)
         elif os.path.isfile(target):
             os.remove(target)
         HOME.clearProperty('SkinVariables.ShortcutsNode.skin.arctic.fuse.3-' + name)
@@ -1398,14 +1411,14 @@ def rollback():
     keymap = os.path.join(USER, 'keymaps', 'zz-michal-family.xml')
     old_keymap = os.path.join(baseline, 'userdata', 'keymaps', 'zz-michal-family.xml')
     if os.path.isfile(old_keymap):
-        shutil.copy2(old_keymap, keymap)
+        shutil.copyfile(old_keymap, keymap)
     elif os.path.isfile(keymap):
         os.remove(keymap)
     translated = xbmcvfs.translatePath('special://skin/language/resource.language.cs_cz/strings.po')
     old_translation = os.path.join(baseline, 'skin.arctic.fuse.3', 'language', 'resource.language.cs_cz', 'strings.po')
     if os.path.isfile(old_translation):
         os.makedirs(os.path.dirname(translated), exist_ok=True)
-        shutil.copy2(old_translation, translated)
+        shutil.copyfile(old_translation, translated)
     elif os.path.isfile(translated):
         os.remove(translated)
     for name in ('Custom_1105_Search.xml', 'Includes_Home.xml', 'Includes_Info.xml', 'Includes_Layouts.xml'):
@@ -1413,15 +1426,15 @@ def rollback():
         if not os.path.isfile(old_search) and name == 'Custom_1105_Search.xml':
             old_search = os.path.join(baseline, 'skin.arctic.fuse.3', '1080i', name)
         if os.path.isfile(old_search):
-            shutil.copy2(old_search, xbmcvfs.translatePath('special://skin/1080i/' + name))
+            shutil.copyfile(old_search, xbmcvfs.translatePath('special://skin/1080i/' + name))
     for name in STREAMING_TEMPLATES:
         old_template = streaming_template_backup(name)
         if os.path.isfile(old_template):
-            shutil.copy2(old_template, streaming_template_path(name))
+            shutil.copyfile(old_template, streaming_template_path(name))
     family_player = os.path.join(USER, 'addon_data', 'plugin.video.themoviedb.helper', 'reconfigured_players', 'family.webshare.json')
     old_family_player = os.path.join(baseline, 'userdata', 'addon_data', 'plugin.video.themoviedb.helper', 'reconfigured_players', 'family.webshare.json')
     if os.path.isfile(old_family_player):
-        shutil.copy2(old_family_player, family_player)
+        shutil.copyfile(old_family_player, family_player)
     elif os.path.isfile(family_player):
         os.remove(family_player)
     HOME.clearProperty('Family.Enabled')

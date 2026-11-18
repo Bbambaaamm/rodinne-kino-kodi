@@ -203,6 +203,16 @@ class UpdateTests(unittest.TestCase):
         self.assertEqual(self.read(self.changes_path), self.original_changes)
         self.assertFalse(self.properties.get('Family.Setup.InProgress'))
 
+    def test_snapshot_and_restore_work_when_shared_storage_denies_metadata(self):
+        import errno
+        with patch('shutil.copystat', side_effect=PermissionError(errno.EACCES, 'Permission denied')) as metadata:
+            snapshot = self.updates.Snapshot()
+            snapshot.capture()
+            (self.provider / 'core.py').write_text('changed source')
+            snapshot.restore()
+        self.assertEqual((self.provider / 'core.py').read_text(), 'previous working source')
+        metadata.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()
