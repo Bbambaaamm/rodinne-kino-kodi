@@ -252,6 +252,7 @@ def install(backup_function):
         changes = maintenance.read_json(os.path.join(maintenance.PROFILE, 'changes.json'))
         maintenance.set_setting('locale.language', 'resource.language.cs_cz', changes)
         xbmc.executebuiltin('ActivateWindow(Home)')
-        notify('Hotovo. Trakt a Webshare připojíš v nabídce Moje → Servis.')
     finally:
         maintenance.HOME.clearProperty(lock)
+    from accounts import guide
+    guide()

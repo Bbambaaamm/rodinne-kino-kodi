@@ -51,6 +51,7 @@ def main():
         'select_family': maintenance.select_family,
         'search_entry': maintenance.search_entry,
         'capture': lambda: maintenance.capture(sys.argv[2] if len(sys.argv) > 2 else ''),
+        'accounts': lambda: __import__('accounts').guide(),
     }
     if mode not in actions:
         return

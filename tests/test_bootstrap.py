@@ -49,6 +49,10 @@ class BootstrapTests(unittest.TestCase):
             self.setup = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(self.setup)
         self.setup.install_repository = Mock()
+        self.accounts = types.SimpleNamespace(guide=Mock())
+        self.account_modules = patch.dict(sys.modules, {'accounts': self.accounts})
+        self.account_modules.start()
+        self.addCleanup(self.account_modules.stop)
 
     def read_json(self, path):
         return json.loads(Path(path).read_text()) if Path(path).exists() else {}
@@ -194,6 +198,7 @@ class BootstrapTests(unittest.TestCase):
         self.maintenance.set_setting.assert_called_once_with('locale.language', 'resource.language.cs_cz', {})
         self.assertFalse(self.home.getProperty('Family.Setup.InProgress'))
         self.setup.xbmcgui.DialogProgressBG.return_value.close.assert_called_once()
+        self.accounts.guide.assert_called_once()
 
     def test_existing_skin_does_not_trigger_download_or_language_switch_during_prepare(self):
         self.skin = self.setup.SKIN

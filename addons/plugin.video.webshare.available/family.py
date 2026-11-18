@@ -328,6 +328,7 @@ def state_item(title, message, state, retry=None, key='', command=''):
     li = xbmcgui.ListItem(label=title, label2=message, path=path, offscreen=True)
     li.setProperty('IsPlayable', 'false')
     li.setProperty('family.state', state)
+    if state == 'account':li.setProperty('family.action', 'accounts')
     if key:li.setProperty('family.paging.key', key)
     if command:widget_action(li,command)
     li.setInfo('video', {'title': title, 'plot': message})
@@ -350,6 +351,13 @@ def render_list(kind, source, personal=False):
     try:
         family = sys.modules[__name__]
         value = paging.route(kind, source, personal)
+        account = missing_list_account(value)
+        if account:
+            command = 'RunScript(script.michal.family.repair,accounts)'
+            state_item('Připojit ' + account, 'Dokonči přihlášení. OK otevře průvodce účty.',
+                       'account', url('accounts'), command=command)
+            xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
+            return
         try:count = int(PARAMS.get('count') or paging.BATCH)
         except ValueError:count = paging.BATCH
         count = min(paging.MAX_ITEMS, max(count, paging.requested(family, value)))
@@ -402,6 +410,18 @@ def render_list(kind, source, personal=False):
             state_item(title + '  •  Zkusit znovu',message,'error',retry,key,retry_command)
         HOME.setProperty('Family.LastListError', json.dumps({'kind': kind, 'source': source, 'class': type(exc).__name__}))
     xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
+
+def missing_list_account(value):
+    import paging
+    if value['personal'] or value['source'] in ('playback', 'next', 'recommendations', 'watchlist', 'history'):
+        if not core.trakt_token_candidates():
+            return 'Trakt'
+    if paging.needs_availability(value):
+        try:
+            core.get_webshare_token()
+        except RuntimeError:
+            return 'Webshare'
+    return ''
 
 def find_sources(record):
     item, meta = record['item'], record['meta']
@@ -741,6 +761,8 @@ def route():
         result = async_work(lambda: paging.ensure(sys.modules[__name__], value), 'Obnovuji seznam…')
         if result is not None:
             xbmc.executebuiltin('Container.Refresh')
+    elif action == 'accounts':
+        xbmc.executebuiltin('RunScript(script.michal.family.repair,accounts)')
     elif action == 'service':
         xbmc.executebuiltin('RunScript(script.michal.family.repair,menu)')
     else:

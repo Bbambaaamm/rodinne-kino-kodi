@@ -86,6 +86,7 @@ class Pager:
         self.display_results = queue.Queue()
         self.display_job = None
         self.display_retry = {}
+        self.account_stamp = ''
     def close(self):
         self.closed=True
         for cancel in self.inflight.values():cancel.set()
@@ -116,6 +117,10 @@ class Pager:
 
     def refresh_display(self,window,focused):
         f=self.f
+        stamp=f.HOME.getProperty('Family.Accounts.Changed')
+        if stamp != self.account_stamp:
+            self.account_stamp=stamp
+            self.display_retry.clear()
         try:
             value,revision,ok=self.display_results.get_nowait()
         except queue.Empty:

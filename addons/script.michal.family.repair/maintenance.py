@@ -505,6 +505,9 @@ def select_family():
         xbmc.executebuiltin('Action(Select)')
         return
     prefix = 'Container(301).ListItem.' if cid == 311 else 'ListItem.'
+    if xbmc.getInfoLabel(prefix+'Property(family.action)') == 'accounts':
+        xbmc.executebuiltin('RunScript(script.michal.family.repair,accounts)')
+        return
     if xbmc.getInfoLabel(prefix+'Property(family.action)')=='list_more':
         key=xbmc.getInfoLabel(prefix+'Property(family.paging.key)')
         try:
@@ -862,6 +865,26 @@ def streaming_hub_patch():
     status('streaming_hub_applied', window=11104, label=STREAMING_LABEL)
 
 
+def configure_family_hubs():
+    folder = os.path.join(USER, 'addon_data', 'script.skinvariables', 'nodes', 'skin.arctic.fuse.3')
+    name = 'skinvariables-shortcut-hubs.json'
+    target = os.path.join(folder, name)
+    fallback = xbmcvfs.translatePath('special://skin/shortcuts/' + name)
+    hubs = read_json(target if os.path.isfile(target) else fallback, [])
+    if not isinstance(hubs, list) or not hubs:
+        raise RuntimeError('Nabídky Arctic Fuse 3 nejsou dostupné.')
+    for window, label, icon in (('1101', 'Filmy', 'shapes.png'),
+                                ('1102', 'Seriály', 'shapes.png'), ('1103', 'Moje', 'trakt.png')):
+        hub = next((row for row in hubs if str(row.get('window')) == window), None)
+        if hub is None:
+            hub = {'window': window, 'slot': window[-2:], 'guid': 'family-hub-' + window}
+            hubs.append(hub)
+        hub.update(label=label, disabled='', path='SetFocus(601)', target='',
+                   icon='special://skin/extras/icons/' + icon)
+    write_json(target, hubs)
+    HOME.clearProperty('SkinVariables.ShortcutsNode.skin.arctic.fuse.3-' + name)
+
+
 def configure_layout(manifest):
     src = os.path.join(PATH, 'resources', 'layout.json')
     layout = read_json(src)
@@ -883,6 +906,7 @@ def configure_layout(manifest):
         manifest.setdefault('skin_bools', {}).setdefault(key, bool(old))
         xbmc.executebuiltin(('Skin.SetBool' if value else 'Skin.Reset') + '(' + key + ')')
     HOME.setProperty('SkinVariables.ShortcutsNode.Reload', str(time.time()))
+    configure_family_hubs()
     configure_streaming_hub(manifest)
     rebuild_layout()
 
@@ -1062,6 +1086,7 @@ def service(updater=None):
     movie_watch = provider_module('movie_watch').MovieWatchSync(family)
     HOME.setProperty('Family.Service.Version', VERSION)
     monitor = xbmc.Monitor()
+    from accounts import offer_setup
     last = 0
     try:
         while (not monitor.abortRequested() and not HOME.getProperty('Family.Service.Stop')
@@ -1080,6 +1105,7 @@ def service(updater=None):
             except (RuntimeError, ValueError, TypeError):
                 HOME.setProperty('Family.CSFD.Status', 'local_error')
             if browsing:
+                offer_setup()
                 try:
                     if current==11104:
                         streaming_input()
@@ -1157,7 +1183,7 @@ def menu(backup_function=None):
             from bootstrap import install
             install(backup_function)
         return
-    options = ['Kontrola rodinného kina', 'Předvolby: český zvuk a 1080p', 'Otevřít přihlášení Trakt', 'Otevřít přihlášení Webshare', 'Zobrazit umístění zálohy', 'Obnovit původní sestavu', 'Přejít na Android TV', setup_label, 'Hodnocení ČSFD – Atlas', 'Zavřít']
+    options = ['Kontrola rodinného kina', 'Předvolby: český zvuk a 1080p', 'Otevřít přihlášení Trakt', 'Otevřít přihlášení Webshare', 'Zobrazit umístění zálohy', 'Obnovit původní sestavu', 'Přejít na Android TV', setup_label, 'Hodnocení ČSFD – Atlas', 'Dokončit přihlášení účtů', 'Zavřít']
     choice = xbmcgui.Dialog().select('Servis rodinného kina', options)
     if choice == 0:
         verify()
@@ -1185,6 +1211,9 @@ def menu(backup_function=None):
             install(backup_function)
     elif choice == 8:
         atlas_settings()
+    elif choice == 9:
+        from accounts import guide
+        guide()
 
 def verify():
     checks = []
@@ -1198,6 +1227,13 @@ def verify():
     family = provider_module()
     checks.append({'check': 'Trakt integration client available', 'pass': bool(family.core.trakt_client_id())})
     checks.append({'check': 'Trakt credentials available', 'pass': bool(family.core.trakt_token_candidates())})
+    checks.append({'check': 'Webshare credentials available', 'pass': bool(xbmcaddon.Addon('plugin.video.yawsp').getSetting('token'))})
+    hubs = read_json(os.path.join(USER, 'addon_data', 'script.skinvariables', 'nodes',
+                                 'skin.arctic.fuse.3', 'skinvariables-shortcut-hubs.json'), [])
+    for window, title in (('1101', 'Filmy'), ('1102', 'Seriály'), ('1103', 'Moje')):
+        checks.append({'check': 'navigation ' + window, 'pass': any(
+            str(row.get('window')) == window and row.get('label') == title
+            and str(row.get('disabled', '')).lower() != 'true' for row in hubs)})
     from urllib.error import URLError
     original = family.core.trakt_request
     try:
