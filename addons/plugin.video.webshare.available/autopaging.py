@@ -1,6 +1,7 @@
 """Prefetch the next ten, then refresh the same native carousel by URL."""
 import json,queue,threading,time
 import paging as p
+import streaming
 
 STREAMING_HUB = 11104
 STREAMING_ROWS = {'movie': 502, 'tv': 503}
@@ -87,10 +88,13 @@ class Pager:
         self.display_job = None
         self.display_retry = {}
         self.account_stamp = ''
+        self.poster_job = None
+        self.poster_provider = ''
     def close(self):
         self.closed=True
         for cancel in self.inflight.values():cancel.set()
         if self.display_job:self.display_job.set()
+        if self.poster_job:self.poster_job.set()
     def publish(self,key,state,**values):
         self.f.HOME.setProperty('Family.Paging.Status',json.dumps({'key':key,'state':state,**values}))
     def sync_spotlights(self):
@@ -114,6 +118,31 @@ class Pager:
         info=f.rpc('XBMC.GetInfoLabels',{'labels':[field]}) or {}
         sync_streaming_counts(f)
         focus_streaming_catalogue(f,info.get(field,''))
+        self.prefetch_streaming_posters(info.get(field,''))
+
+    def prefetch_streaming_posters(self, control):
+        f = self.f
+        if control != '501' or f.HOME.getProperty(STREAMING_PROPERTY + 'service'):
+            return
+        field = 'ListItem.Property(family.streaming.movie)'
+        labels = f.rpc('XBMC.GetInfoLabels', {'labels': [field]}) or {}
+        provider = labels.get(field, '')
+        if provider == self.poster_provider or p.provider_id('provider_' + provider) is None:
+            return
+        if self.poster_job:
+            self.poster_job.set()
+        self.poster_provider = provider
+        cancel = threading.Event()
+        self.poster_job = cancel
+        def load():
+            try:
+                value = p.route('movie', 'provider_' + provider)
+                data = p.ensure(f, value, p.BATCH, cancel)
+                if not cancel.is_set():
+                    streaming.prefetch_posters(f.core, data['records'], cancel)
+            except (OSError, RuntimeError, ValueError, TimeoutError, InterruptedError):
+                pass
+        threading.Thread(target=load, daemon=True).start()
 
     def refresh_display(self,window,focused):
         f=self.f

@@ -6,14 +6,14 @@
 
 Pro **Kodi 21 Omega** stačí stáhnout jeden ZIP. Při prvním spuštění instalátor obstará Arctic Fuse 3 a jeho závislosti, Webshare – YAWSP, Trakt a češtinu. Poté aktivuje vzhled a připraví nabídky, vzhled karet, hledání, postupné načítání, ovládání Zpět a přehrávač podle domácí sestavy na Homaticsu. Instalace potřebuje internet.
 
-1. Stáhni [kompletní instalační ZIP Rodinného kina 1.8.8](https://raw.githubusercontent.com/Bbambaaamm/rodinne-kino-kodi/main/dist/script.michal.family.repair/script.michal.family.repair-1.8.8.zip). V Kodi dej **Doplňky → Instalovat ze souboru ZIP** a vyber stažený soubor. Pro ruční instalaci ZIP povol **Neznámé zdroje**.
+1. Stáhni [kompletní instalační ZIP Rodinného kina 1.8.9](https://raw.githubusercontent.com/Bbambaaamm/rodinne-kino-kodi/main/dist/script.michal.family.repair/script.michal.family.repair-1.8.9.zip). V Kodi dej **Doplňky → Instalovat ze souboru ZIP** a vyber stažený soubor. Pro ruční instalaci ZIP povol **Neznámé zdroje**.
 2. Otevři **Programové doplňky → Rodinné kino – instalace a servis** a potvrď instalaci. Kodi může vyžádat potvrzení instalace jednotlivých součástí a přepnutí na Arctic Fuse 3. Instalační postup uloží místní zálohu nastavení a své změny zaznamená pro obnovu. Pro aktuální závislosti vzhledu povolí aktualizace z libovolného repozitáře. Automatické dotazy Traktu na hodnocení vypne stejně jako v domácí sestavě.
 3. Instalace otevře průvodce **Dokončení Rodinného kina** s připojením Webshare, osobních seznamů Traktu a ukládání zhlédnutí. U Webshare zadej jméno a heslo, u Traktu potvrď propojení podle zobrazených pokynů. Webshare otevře dva kroky s jasnými českými popisky pro jméno nebo e-mail a pro heslo. Přihlášení se uloží až po úspěšném ověření účtu. Průvodce lze znovu otevřít v **Moje → Servis → Dokončit přihlášení účtů**. U nového TMDb Helperu instalátor doplní samostatnou integraci Trakt.
 4. V **Moje → Servis → Kontrola rodinného kina** ověř sestavu. ČSFD lze zapnout pod **Hodnocení ČSFD – Atlas** s vlastním klíčem a tarifem podporujícím ČSFD.
 
 Na sestavě s vlastními úpravami Arctic Fuse 3 nejdřív uvolni vlastní nabídku na pozici 4, kterou použijí Streamovací služby. Při přerušeném stahování nebo odmítnutí systémového potvrzení lze instalátor znovu spustit. Již připravené součásti zkontroluje a pokračuje. Obnovu původního nastavení najdeš ve stejném servisním menu.
 
-Instalátor rozšiřuje instalaci vzhledu z původního balíčku `michal-kodi-one-click-setup-1.0.2.zip` o aktuální Rodinné kino. Přibalený filmový doplněk má verzi **0.9.17**. Součásti třetích stran získává z [repozitáře autora Arctic Fuse](https://github.com/jurialmunkey/repository.jurialmunkey), [oficiálního repozitáře Kodi](https://kodi.tv/addons/omega/) a [zdroje Webshare – YAWSP](https://github.com/Webshare/Web). U přímo stahovaných ZIPů kontroluje otisk SHA-256. Instalační ZIP obsahuje i vlastní repozitář pro další aktualizace a přidá ho při první instalaci.
+Instalátor rozšiřuje instalaci vzhledu z původního balíčku `michal-kodi-one-click-setup-1.0.2.zip` o aktuální Rodinné kino. Přibalený filmový doplněk má verzi **0.9.18**. Součásti třetích stran získává z [repozitáře autora Arctic Fuse](https://github.com/jurialmunkey/repository.jurialmunkey), [oficiálního repozitáře Kodi](https://kodi.tv/addons/omega/) a [zdroje Webshare – YAWSP](https://github.com/Webshare/Web). U přímo stahovaných ZIPů kontroluje otisk SHA-256. Instalační ZIP obsahuje i vlastní repozitář pro další aktualizace a přidá ho při první instalaci.
 
 Instalaci přímo z internetu přidáš přes **Nastavení → Správce souborů → Přidat zdroj** s adresou **https://bbambaaamm.github.io/rodinne-kino-kodi/** a názvem **Rodinné kino**. V **Doplňky → Instalovat ze souboru ZIP → Rodinné kino** vyber **repository.rodinne.kino-1.0.0.zip**, potom pokračuj přes **Instalovat z repozitáře → Rodinné kino → Programové doplňky**. Lze také stáhnout [samostatný ZIP repozitáře](https://bbambaaamm.github.io/rodinne-kino-kodi/repository.rodinne.kino-1.0.0.zip).
 
@@ -30,6 +30,10 @@ Služba pozná i změnu verze Arctic Fuse 3 a znovu na ni použije naše úpravy
 Repozitář nabízí aktuální vydání a dvě předchozí verze instalačního doplňku. Například u 1.8.5 jsou dostupné také 1.8.4 a 1.8.3. Stejné tři původní ZIPy jsou ke stažení na instalační stránce. Při každém sestavení se výběr verzí obnoví automaticky.
 
 V Kodi otevři **Rodinné kino – instalace a servis → Informace → Verze** a vyber předchozí vydání. Pak nech Kodi chvíli bez přehrávání na **Domů**, aby služba použila soubory a nastavení vybrané verze včetně přibaleného filmového doplňku. Účty se zachovají. Kodi 21 při volbě starší verze z repozitáře automaticky připne tuto verzi proti automatické aktualizaci; návrat na nejnovější vydání proveď stejnou nabídkou Verze.
+
+## Přednačítání plakátů 1.8.9
+
+Při zaměření dlaždice streamovací služby doplněk v pozadí připraví první čtyři plakáty jejího filmového katalogu. Po otevření služby je použije z místní cache. Stahování je omezené velikostí souboru i časem; při změně zaměřené služby se předchozí práce přeruší. Následující položky a obrázky mimo tento katalog fungují jako dosud.
 
 ## Obnova přihlášení Webshare 1.8.8
 

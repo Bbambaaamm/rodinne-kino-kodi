@@ -289,7 +289,13 @@ def metadata_item(record, path=''):
         tag.setSeason(item['season'])
         tag.setEpisode(item['episode'])
     li.setUniqueIDs({k:v for k,v in ids.items() if v}, 'tmdb')
-    li.setArt(core.artwork(meta))
+    art = core.artwork(meta)
+    if PARAMS.get('action') == 'streaming_catalogue' and meta.get('poster_path'):
+        import streaming
+        poster = streaming.cached_poster(core, meta['poster_path'])
+        if poster:
+            art.update(poster=poster, thumb=poster, icon=poster)
+    li.setArt(art)
     li.setProperty('family.kind', item['kind'])
     li.setProperty('family.tmdb_id', str(item['tmdb_id']))
     li.setProperty('tmdb_id', str(item['tmdb_id']))
