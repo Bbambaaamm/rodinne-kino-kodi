@@ -31,6 +31,25 @@ KEYBOARD = '''<includes>
         </definition>
     </include>
 </includes>'''
+CATEGORIES = '''<includes>
+    <include name="Categories_Selector_OverlayList">
+        <definition>
+            <control type="grouplist">
+                <control type="label"><label>Selected</label></control>
+                <control type="label"><label>$INFO[Container($PARAM[id]).ListItem(1).Label]</label></control>
+                <control type="label"><label>$INFO[Container($PARAM[id]).ListItem(2).Label]</label></control>
+                <control type="label"><label>$INFO[Container($PARAM[id]).ListItem(3).Label]</label></control>
+            </control>
+        </definition>
+    </include>
+</includes>'''
+STREAMING = '''<window id="1104"><controls>
+        <include content="Hub_Configurable_Window"><param name="window">1104</param></include>
+    </controls></window>'''
+SETTINGS = '''<window><controls>
+        <include content="Settings_Dialog" />
+    </controls>
+</window>'''
 
 
 class SkinInputTests(unittest.TestCase):
@@ -45,8 +64,31 @@ class SkinInputTests(unittest.TestCase):
         buttons = root.findall("./include[@name='Family_Android_Touch_Navigation']/definition/control")
         self.assertEqual([button.findtext('onclick') for button in buttons], [
             'ReplaceWindow(Home)', 'ReplaceWindow(1101)', 'ReplaceWindow(1102)',
-            'ReplaceWindow(1103)', 'ReplaceWindow(1104)'])
+            'ReplaceWindow(1103)', 'ReplaceWindow(1104)', 'ActivateWindow(Settings)'])
+        self.assertEqual(buttons[3].findtext('left'), '565')
+        self.assertEqual(buttons[-1].findtext('left'), '1570')
         self.assertEqual(skin_input.hubs(result), result)
+
+    def test_existing_navigation_gear_opens_settings(self):
+        old = skin_input.hubs(HUBS).replace('ActivateWindow(Settings)',
+                                                'ActivateWindow(1170)')
+        result = skin_input.hubs(old)
+        self.assertIn('ActivateWindow(Settings)', result)
+        self.assertNotIn('ActivateWindow(1170)', result)
+
+    def test_streaming_hub_has_its_own_touch_navigation(self):
+        result = skin_input.streaming_hub(STREAMING)
+        root = ET.fromstring(result)
+        self.assertEqual(root.find('./controls/include[2]').get('content'),
+                         'Family_Android_Touch_Navigation')
+        self.assertEqual(skin_input.streaming_hub(result), result)
+
+    def test_settings_has_visible_touch_exit(self):
+        result = skin_input.settings(SETTINGS)
+        button = ET.fromstring(result).find('./controls/control[@id="9301"]')
+        self.assertEqual(button.findtext('label'), 'Zpět')
+        self.assertEqual(button.findtext('onclick'), 'ActivateWindow(Home)')
+        self.assertEqual(skin_input.settings(result), result)
 
     def test_android_keeps_home_switcher_visible(self):
         result = skin_input.home(HOME)
@@ -62,8 +104,21 @@ class SkinInputTests(unittest.TestCase):
                          'special://skin/extras/icons/eye.png')
         self.assertEqual(skin_input.keyboard(result), result)
 
+    def test_visible_category_labels_can_select_next_widgets_by_touch(self):
+        result = skin_input.categories(CATEGORIES)
+        root = ET.fromstring(result)
+        controls = root.findall("./include[@name='Categories_Selector_OverlayList']/definition/control/control")
+        self.assertEqual([control.get('type') for control in controls],
+                         ['label', 'button', 'button', 'button'])
+        self.assertEqual([control.findtext('onclick') for control in controls[1:]], [
+            'Control.Move($PARAM[id],1)', 'Control.Move($PARAM[id],2)',
+            'Control.Move($PARAM[id],3)'])
+        self.assertEqual(skin_input.categories(result), result)
+
     def test_changed_upstream_structure_fails_before_writing(self):
-        for transform in (skin_input.home, skin_input.hubs, skin_input.keyboard):
+        for transform in (skin_input.home, skin_input.hubs, skin_input.keyboard,
+                          skin_input.categories, skin_input.streaming_hub,
+                          skin_input.settings):
             with self.subTest(transform=transform.__name__):
                 with self.assertRaises(RuntimeError):
                     transform('<includes />')

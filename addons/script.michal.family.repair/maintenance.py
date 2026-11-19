@@ -456,6 +456,9 @@ def input_skin_patch():
     transforms = {
         'Includes_Home.xml': skin_input.home,
         'Includes_Hubs.xml': skin_input.hubs,
+        'Includes_Categories.xml': skin_input.categories,
+        'Custom_1104_Hub.xml': skin_input.streaming_hub,
+        'Settings.xml': skin_input.settings,
         'Dialog_DialogKeyboard.xml': skin_input.keyboard,
     }
     changes = []
