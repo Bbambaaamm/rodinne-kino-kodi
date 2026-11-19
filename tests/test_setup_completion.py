@@ -132,6 +132,74 @@ class SetupCompletionTests(unittest.TestCase):
         self.assertTrue(self.m.read_json(self.a.STATE)['webshare'])
         self.assertNotIn('private-password', Path(self.a.STATE).read_text())
 
+    def keyboards(self, username='fixture-user', password='fixture-password', cancel=None):
+        keyboards = [Mock(), Mock()]
+        for index, value in enumerate((username, password)):
+            keyboards[index].getText.return_value = value
+            keyboards[index].isConfirmed.return_value = cancel != index
+        self.xbmc.Keyboard = Mock(side_effect=keyboards)
+        return keyboards
+
+    def run_webshare(self, result='fixture-token', error=None):
+        self.gui.DialogProgress.return_value.iscanceled.return_value = False
+        thread = lambda target, **_: types.SimpleNamespace(start=target)
+        with patch.object(self.a.threading, 'Thread', side_effect=thread), \
+                patch.object(self.a, 'webshare_login', return_value=result, side_effect=error) as login:
+            self.a.connect_webshare()
+        return login
+
+    def test_webshare_prompts_have_literal_labels_and_a_masked_empty_password(self):
+        self.settings = {'plugin.video.yawsp': {'wsuser': 'old-user', 'wspass': 'old-password'}}
+        self.keyboards(username='  fixture-user  ', password=' password with spaces ')
+        login = self.run_webshare()
+        self.assertEqual(self.xbmc.Keyboard.call_args_list[0].args,
+            ('old-user', 'Webshare – uživatelské jméno nebo e-mail'))
+        self.assertEqual(self.xbmc.Keyboard.call_args_list[1].args, ('', 'Webshare – heslo', True))
+        login.assert_called_once_with('fixture-user', ' password with spaces ')
+        self.assertEqual(self.settings['plugin.video.yawsp'], {
+            'wsuser': 'fixture-user', 'wspass': ' password with spaces ', 'token': 'fixture-token'})
+        self.dialog.notification.assert_called_once()
+
+    def test_canceling_either_webshare_step_preserves_existing_account_without_network(self):
+        for cancel in (0, 1):
+            with self.subTest(cancel=cancel):
+                saved = {'wsuser': 'old-user', 'wspass': 'old-password', 'token': 'old-token'}
+                self.settings = {'plugin.video.yawsp': saved.copy()}
+                self.keyboards(cancel=cancel)
+                login = self.run_webshare()
+                login.assert_not_called()
+                self.assertEqual(self.settings['plugin.video.yawsp'], saved)
+
+    def test_empty_webshare_fields_do_not_send_a_login(self):
+        for username, password in (('   ', 'secret'), ('fixture-user', '')):
+            with self.subTest(username=username):
+                self.keyboards(username=username, password=password)
+                login = self.run_webshare()
+                login.assert_not_called()
+                self.assertEqual(self.settings, {})
+                self.dialog.ok.assert_called()
+
+    def test_failed_webshare_login_keeps_working_credentials(self):
+        saved = {'wsuser': 'old-user', 'wspass': 'old-password', 'token': 'old-token'}
+        self.settings = {'plugin.video.yawsp': saved.copy()}
+        self.keyboards()
+        self.run_webshare(error=RuntimeError('fixture rejection'))
+        self.assertEqual(self.settings['plugin.video.yawsp'], saved)
+        self.assertNotIn('Family.Accounts.Changed', self.properties)
+        self.dialog.notification.assert_not_called()
+
+    def test_service_webshare_entry_uses_the_same_login_as_installation(self):
+        tree = ast.parse((SETUP / 'maintenance.py').read_text(encoding='utf8'))
+        nodes = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'menu']
+        self.m.write_json(Path(self.m.PROFILE) / 'changes.json', {'applied': True})
+        self.dialog.select.return_value = 3
+        login = Mock()
+        env = dict(vars(self.m), os=os, xbmcgui=self.gui)
+        with patch.dict(sys.modules, {'accounts': types.SimpleNamespace(connect_webshare=login)}):
+            exec(compile(ast.Module(body=nodes, type_ignores=[]), 'maintenance.py', 'exec'), env)
+            env['menu']()
+        login.assert_called_once_with()
+
     def test_spotlight_account_card_opens_guide_without_trying_to_play_it(self):
         tree = ast.parse((SETUP / 'maintenance.py').read_text(encoding='utf8'))
         nodes = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'select_family']

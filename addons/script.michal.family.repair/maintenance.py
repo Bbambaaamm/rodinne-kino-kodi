@@ -1230,7 +1230,8 @@ def menu(backup_function=None):
         except RuntimeError:account = xbmcaddon.Addon('plugin.video.themoviedb.helper')
         account.openSettings()
     elif choice == 3:
-        xbmcaddon.Addon('plugin.video.yawsp').openSettings()
+        from accounts import connect_webshare
+        connect_webshare()
     elif choice == 4:
         xbmcgui.Dialog().ok('Záloha zůstává na krabičce', read_json(os.path.join(PROFILE, 'baseline.json')).get('path', 'Záloha není dostupná.'))
     elif choice == 5:

@@ -93,11 +93,38 @@ def webshare_login(username, password):
     return token
 
 
+def webshare_credentials(addon):
+    # Literal headings also work immediately after installation, before Kodi
+    # has loaded another add-on's settings translations into its cache.
+    keyboard = xbmc.Keyboard(addon.getSetting('wsuser'),
+                             'Webshare – uživatelské jméno nebo e-mail')
+    keyboard.doModal()
+    if not keyboard.isConfirmed():
+        return None
+    username = keyboard.getText().strip()
+    if not username:
+        xbmcgui.Dialog().ok('Webshare', 'Zadej uživatelské jméno nebo e-mail.')
+        return None
+    keyboard = xbmc.Keyboard('', 'Webshare – heslo', True)
+    keyboard.doModal()
+    if not keyboard.isConfirmed():
+        return None
+    password = keyboard.getText()
+    if not password:
+        xbmcgui.Dialog().ok('Webshare', 'Zadej heslo ke svému účtu Webshare.')
+        return None
+    return username, password
+
+
 def connect_webshare(prompt=True):
     addon = xbmcaddon.Addon('plugin.video.yawsp')
     if prompt:
-        addon.openSettings()
-    username, password = addon.getSetting('wsuser'), addon.getSetting('wspass')
+        credentials = webshare_credentials(addon)
+        if credentials is None:
+            return
+        username, password = credentials
+    else:
+        username, password = addon.getSetting('wsuser'), addon.getSetting('wspass')
     if not username or not password:
         return
     results = queue.Queue(1)
@@ -116,8 +143,13 @@ def connect_webshare(prompt=True):
             try:
                 ok, token = results.get_nowait()
                 if ok:
+                    if prompt:
+                        addon.setSetting('wsuser', username)
+                        addon.setSetting('wspass', password)
                     addon.setSetting('token', token)
                     invalidate_lists()
+                    if prompt:
+                        xbmcgui.Dialog().notification('Webshare', 'Přihlášení bylo dokončeno.')
                 else:
                     xbmcgui.Dialog().ok('Webshare', 'Přihlášení se nepodařilo. Ověř jméno, heslo a připojení k internetu.')
                 return
