@@ -343,6 +343,42 @@ def get_webshare_token():
     return token
 
 
+def refresh_webshare_token():
+    """Renew YAWSP's expired token with its existing saved credentials."""
+    import importlib.util
+
+    addon = xbmcaddon.Addon(YAWSP_ID)
+    username = addon.getSetting('wsuser')
+    password = addon.getSetting('wspass')
+    if not username or not password:
+        raise RuntimeError('Webshare credentials are missing')
+    salt_response = xml_post(WEBSHARE_API + '/salt/',
+                             {'username_or_email': username}, timeout=12)
+    if salt_response.findtext('status') != 'OK' or not salt_response.findtext('salt'):
+        raise RuntimeError('Webshare salt request failed')
+    crypt_path = os.path.join(addon.getAddonInfo('path'), 'md5crypt.py')
+    spec = importlib.util.spec_from_file_location('family_yawsp_md5crypt', crypt_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError('YAWSP password digest is unavailable')
+    crypt = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(crypt)
+    digest_part = crypt.md5crypt(password.encode('utf-8'),
+                                 salt_response.findtext('salt').encode('utf-8'))
+    if isinstance(digest_part, str):
+        digest_part = digest_part.encode('utf-8')
+    encrypted = hashlib.sha1(digest_part).hexdigest()
+    digest = hashlib.md5((username + ':Webshare:' + encrypted).encode('utf-8')).hexdigest()
+    response = xml_post(WEBSHARE_API + '/login/', {
+        'username_or_email': username, 'password': encrypted,
+        'digest': digest, 'keep_logged_in': 1,
+    }, timeout=12)
+    token = response.findtext('token') if response.findtext('status') == 'OK' else None
+    if not token:
+        raise RuntimeError('Webshare login failed')
+    addon.setSetting('token', token)
+    return token
+
+
 # ---------------------------------------------------------------------------
 # Source list helpers
 # ---------------------------------------------------------------------------
