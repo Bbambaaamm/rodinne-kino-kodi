@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <addons>
-  <addon id="script.michal.family.repair" name="Rodinné kino – instalace a servis" version="1.8.3" provider-name="Rodinné kino">
+  <addon id="script.michal.family.repair" name="Rodinné kino - instalace a servis" version="1.8.4" provider-name="Rodinné kino">
     <requires>
       <import addon="xbmc.python" version="3.0.0" />
     </requires>

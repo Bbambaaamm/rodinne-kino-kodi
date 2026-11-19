@@ -19,6 +19,7 @@ import xbmcgui
 import xbmcvfs
 
 from capture_pixels import has_menu_detail
+import skin_input
 
 ID = 'script.michal.family.repair'
 STREAMING_HUB = '1104'
@@ -209,6 +210,7 @@ def ui_patch():
     changes['version'] = VERSION
     changes['single_window_browser'] = time.time()
     updated=search_patch() or updated
+    updated=input_skin_patch() or updated
     updated=paging_patch() or updated
     if updated:
         xbmc.executebuiltin('ReloadSkin()')
@@ -444,6 +446,38 @@ def search_patch():
         temporary = path + '.family-new'
         with open(temporary, 'w', encoding='utf-8') as f:
             f.write(updated)
+        os.replace(temporary, path)
+    return True
+
+
+def input_skin_patch():
+    if xbmc.getSkinDir() != 'skin.arctic.fuse.3':
+        return False
+    transforms = {
+        'Includes_Home.xml': skin_input.home,
+        'Includes_Hubs.xml': skin_input.hubs,
+        'Dialog_DialogKeyboard.xml': skin_input.keyboard,
+    }
+    changes = []
+    for name, transform in transforms.items():
+        path = xbmcvfs.translatePath('special://skin/1080i/' + name)
+        with open(path, encoding='utf-8') as source:
+            original = source.read()
+        updated = transform(original)
+        if updated != original:
+            changes.append((name, path, updated))
+    if not changes:
+        return False
+    backup = search_skin_backup()
+    os.makedirs(backup, exist_ok=True)
+    for name, path, _ in changes:
+        previous = os.path.join(backup, name)
+        if not os.path.isfile(previous):
+            shutil.copyfile(path, previous)
+    for _, path, updated in changes:
+        temporary = path + '.family-new'
+        with open(temporary, 'w', encoding='utf-8') as target:
+            target.write(updated)
         os.replace(temporary, path)
     return True
 
@@ -996,6 +1030,7 @@ def apply(backup_function, restart_service=True):
     configure_player(changes)
     translation()
     search_patch()
+    input_skin_patch()
     ratings_skin_patch()
     movie_progress_skin_patch()
     write_keymap()
@@ -1123,7 +1158,7 @@ def service(updater=None):
                 last = time.time()
                 updated = False
                 errors = {}
-                for patch in (translation, search_patch, paging_patch, ratings_skin_patch, movie_progress_skin_patch):
+                for patch in (translation, search_patch, input_skin_patch, paging_patch, ratings_skin_patch, movie_progress_skin_patch):
                     HOME.setProperty('Family.Service.Maintenance', patch.__name__)
                     try:
                         updated = patch() or updated
