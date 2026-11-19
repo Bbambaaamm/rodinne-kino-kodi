@@ -90,22 +90,36 @@ def main():
     (DIST / 'addons.xml').write_bytes(metadata)
     (DIST / 'addons.xml.sha256').write_text(sha256(metadata).hexdigest() + '\n', encoding='ascii', newline='\n')
 
+    write_install_source(repository, release)
+
+
+def write_install_source(repository, release):
     # Kodi's HTTP directory parser needs matching relative link and label text.
-    # Publish only the small repository ZIP in the installation source.
+    # Keep the current installer visible alongside the update repository.
     site = ROOT / 'docs'
     site.mkdir(exist_ok=True)
     filename = f'{REPOSITORY}-{repository.attrib["version"]}.zip'
     archive = (DIST / REPOSITORY / filename).read_bytes()
     (site / filename).write_bytes(archive)
+    installer_filename = f'{INSTALLER}-{release}.zip'
+    installer_archive = (DIST / INSTALLER / installer_filename).read_bytes()
+    (site / installer_filename).write_bytes(installer_archive)
     (site / 'index.html').write_text(f'''<!doctype html>
 <html lang="cs">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Rodinné kino pro Kodi</title></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Rodinné kino {release} pro Kodi</title></head>
 <body>
 <h1>Rodinné kino pro Kodi</h1>
 <p>Instalační zdroj pro Kodi 21 Omega.</p>
+<p>Aktuální verze Rodinného kina: <strong>{release}</strong>.</p>
+<h2>Instalace přes repozitář</h2>
 <pre><a href="{filename}">{filename}</a> {len(archive)} B</pre>
 <p>Vyber tento ZIP v Kodi přes Doplňky → Instalovat ze souboru ZIP.</p>
 <p>Potom otevři Instalovat z repozitáře → Rodinné kino → Programové doplňky → Rodinné kino – instalace a servis.</p>
+<p>ZIP repozitáře má vlastní číslo verze {repository.attrib["version"]}. Nabízí Rodinné kino {release} a jeho další aktualizace.</p>
+<h2>Přímá instalace verze {release}</h2>
+<pre><a href="{installer_filename}">{installer_filename}</a> {len(installer_archive)} B</pre>
+<p>Pro instalaci jedním ZIPem vyber tento balíček přes Doplňky → Instalovat ze souboru ZIP. Potom spusť Rodinné kino – instalace a servis a potvrď nastavení.</p>
+<p>Instalátor přidá i repozitář pro další aktualizace.</p>
 <p><a href="https://github.com/Bbambaaamm/rodinne-kino-kodi#instalace">Návod k instalaci</a></p>
 </body>
 </html>
