@@ -6,7 +6,7 @@
 
 Pro **Kodi 21 Omega** stačí stáhnout jeden ZIP. Při prvním spuštění instalátor obstará Arctic Fuse 3 a jeho závislosti, Webshare – YAWSP, Trakt a češtinu. Poté aktivuje vzhled a připraví nabídky, vzhled karet, hledání, postupné načítání, ovládání Zpět a přehrávač podle domácí sestavy na Homaticsu. Instalace potřebuje internet.
 
-1. Stáhni [kompletní instalační ZIP Rodinného kina 1.8.3](https://raw.githubusercontent.com/Bbambaaamm/rodinne-kino-kodi/main/dist/script.michal.family.repair/script.michal.family.repair-1.8.3.zip). V Kodi dej **Doplňky → Instalovat ze souboru ZIP** a vyber stažený soubor. Pro ruční instalaci ZIP povol **Neznámé zdroje**.
+1. Stáhni [kompletní instalační ZIP Rodinného kina 1.8.4](https://raw.githubusercontent.com/Bbambaaamm/rodinne-kino-kodi/main/dist/script.michal.family.repair/script.michal.family.repair-1.8.4.zip). V Kodi dej **Doplňky → Instalovat ze souboru ZIP** a vyber stažený soubor. Pro ruční instalaci ZIP povol **Neznámé zdroje**.
 2. Otevři **Programové doplňky → Rodinné kino – instalace a servis** a potvrď instalaci. Kodi může vyžádat potvrzení instalace jednotlivých součástí a přepnutí na Arctic Fuse 3. Instalační postup uloží místní zálohu nastavení a své změny zaznamená pro obnovu. Pro aktuální závislosti vzhledu povolí aktualizace z libovolného repozitáře. Automatické dotazy Traktu na hodnocení vypne stejně jako v domácí sestavě.
 3. Instalace otevře průvodce **Dokončení Rodinného kina** s připojením Webshare, osobních seznamů Traktu a ukládání zhlédnutí. U Webshare zadej jméno a heslo, u Traktu potvrď propojení podle zobrazených pokynů. Instalátor dokončí přihlášení Webshare po uložení údajů. Průvodce lze znovu otevřít v **Moje → Servis → Dokončit přihlášení účtů**. U nového TMDb Helperu instalátor doplní samostatnou integraci Trakt.
 4. V **Moje → Servis → Kontrola rodinného kina** ověř sestavu. ČSFD lze zapnout pod **Hodnocení ČSFD – Atlas** s vlastním klíčem a tarifem podporujícím ČSFD.
@@ -61,5 +61,11 @@ Po použití vzhledu následuje průvodce účty. Již přihlášené účty zac
 Chybějící účet zobrazí v seznamu přímo tlačítko **Připojit Trakt** nebo **Připojit Webshare**. Po přihlášení se znovu vyžádá načtení osobních seznamů. Prošlo 54 kontrol instalátoru včetně navigace, zachování již nastavených účtů, odložení průvodce a přihlašovacího postupu Webshare se simulovanými odpověďmi.
 
 V odděleném Kodi 21.3 na PC se 1.8.3 stáhla z veřejného repozitáře a sama použila na dosavadní sestavu 1.8.1. Ověřeny byly zapnuté uzly Filmy, Seriály, Moje a Streamovací služby a shoda všech 30 souborů filmového doplňku s vydaným balíčkem. Webshare se úspěšně přihlásilo pomocí místně uložených údajů. Průvodce správně rozlišil již připojené ukládání zhlédnutí a chybějící připojení osobních seznamů Traktu. Katalog filmového žánru i katalog seriálů služby vrátily po deseti titulech bez chyby. Osobní seznamy lze ověřit až po potvrzení připojení jejich účtu uživatelem.
+
+## Dotyk a hesla v Kodi 1.8.4
+
+Na Androidu instalátor přidává dotykové cíle do aktivních obrazovek horní nabídky Arctic Fuse 3. V klávesnici vzhledu doplní standardní tlačítko Kodi pro zobrazení a skrytí zadávaného hesla. Úpravy se po aktualizaci vzhledu obnoví při nečinnosti, bez zásahu do přihlašovacích údajů. Při změně struktury vzhledu se úprava zastaví a nahlásí chybu místo zápisu neplatného XML.
+
+Tato úprava řeší ovládací prvky vzhledu. Pokud dotykový ovladač tabletu sám generuje nechtěné stisky mimo Kodi, je třeba vyřešit také tento problém zařízení.
 
 Původní kód Rodinného kina je pod licencí MIT. Arctic Fuse 3 je dílo [jurialmunkey](https://github.com/jurialmunkey/skin.arctic.fuse.3) pod licencí [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Instalátor přidává úpravy do místně nainstalovaného vzhledu a jeho vlastní soubory zůstávají pod původní licencí. Webshare, Trakt a další služby spravují jejich provozovatelé.
