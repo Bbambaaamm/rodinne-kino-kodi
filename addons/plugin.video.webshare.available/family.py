@@ -453,7 +453,7 @@ def find_sources(record):
     HOME.setProperty('Family.LastSources', json.dumps({'media': media_key(item['kind'], item['tmdb_id'], item.get('season'), item.get('episode')), 'accepted': len(output), 'inspected': len(seen), 'strict_episode': item['kind'] == 'episode', 'queries': queries, 'language_counts': {name: languages.count(name) for name in set(languages)}}))
     return output
 
-def file_link(candidate, verify=True):
+def file_link(candidate, verify=True, _retried=False):
     token = core.get_webshare_token()
     yawsp = xbmcaddon.Addon(core.YAWSP_ID)
     device = yawsp.getSetting('duuid')
@@ -462,11 +462,26 @@ def file_link(candidate, verify=True):
         yawsp.setSetting('duuid', device)
     xml = core.xml_post(core.WEBSHARE_API + '/file_link/', {'ident': candidate['ident'], 'wst': token, 'download_type': 'video_stream', 'device_uuid': device}, timeout=12)
     if xml.findtext('status') != 'OK':
+        try:
+            account = core.xml_post(core.WEBSHARE_API + '/user_data/', {'wst': token}, timeout=8)
+            xbmc.log('FamilyLink: account check status={} vip={}'.format(
+                (account.findtext('status') or 'missing')[:30],
+                account.findtext('vip') if account.findtext('status') == 'OK' else 'unknown'), xbmc.LOGWARNING)
+            if verify and not _retried and account.findtext('status') != 'OK':
+                core.refresh_webshare_token()
+                xbmc.log('FamilyLink: renewed expired Webshare token', xbmc.LOGINFO)
+                return file_link(candidate, verify=verify, _retried=True)
+        except (RuntimeError, ValueError, OSError, HTTPError, URLError, TimeoutError) as exc:
+            xbmc.log('FamilyLink: account check failed ({})'.format(type(exc).__name__), xbmc.LOGWARNING)
+        xbmc.log('FamilyLink: file_link API rejected request (status={}, code={})'.format(
+            (xml.findtext('status') or 'missing')[:30],
+            (xml.findtext('code') or 'missing')[:40]), xbmc.LOGWARNING)
         raise RuntimeError('SOURCE_UNAVAILABLE')
     link = xml.findtext('link') or ''
     parts = urlsplit(link)
     host = (parts.hostname or '').lower()
     if parts.scheme not in ('https', 'http') or not any(host == domain or host.endswith('.' + domain) for domain in ('webshare.cz', 'wsfiles.cz')):
+        xbmc.log('FamilyLink: unsupported source URL host', xbmc.LOGWARNING)
         raise RuntimeError('Unexpected source URL')
     headers = {'User-Agent': core.WEBSHARE_USER_AGENT, 'Referer': 'https://webshare.cz', 'Cookie': 'wst=' + token}
     if not verify:
@@ -477,8 +492,22 @@ def file_link(candidate, verify=True):
             content_type = response.headers.get('Content-Type', '').lower()
             first = response.read(32)
             if len(first) < 8 or any(x in content_type for x in ('text/html', 'application/json', 'text/xml')):
+                xbmc.log('FamilyLink: source probe returned non-video data (type={})'.format(content_type[:60]), xbmc.LOGWARNING)
+                try:
+                    account = core.xml_post(core.WEBSHARE_API + '/user_data/', {'wst': token}, timeout=8)
+                    xbmc.log('FamilyLink: account check status={} vip={}'.format(
+                        (account.findtext('status') or 'missing')[:30],
+                        account.findtext('vip') if account.findtext('status') == 'OK' else 'unknown'), xbmc.LOGWARNING)
+                    if not _retried and account.findtext('status') != 'OK':
+                        core.refresh_webshare_token()
+                        xbmc.log('FamilyLink: renewed expired Webshare token', xbmc.LOGINFO)
+                        return file_link(candidate, verify=verify, _retried=True)
+                except (RuntimeError, ValueError, OSError, HTTPError, URLError, TimeoutError) as exc:
+                    xbmc.log('FamilyLink: account check failed ({})'.format(type(exc).__name__), xbmc.LOGWARNING)
                 raise RuntimeError('SOURCE_UNAVAILABLE')
     except (HTTPError, URLError, TimeoutError) as exc:
+        xbmc.log('FamilyLink: source probe failed (class={}, http={})'.format(
+            type(exc).__name__, getattr(exc, 'code', '-')), xbmc.LOGWARNING)
         raise RuntimeError('SOURCE_UNAVAILABLE') from exc
     return link + '|' + urlencode(headers)
 
