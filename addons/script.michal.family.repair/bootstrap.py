@@ -18,6 +18,7 @@ import maintenance
 
 
 SKIN = 'skin.arctic.fuse.3'
+MIN_SKIN = (3, 5, 4)
 JURIAL_REPO = 'repository.jurialmunkey'
 YAWSP = 'plugin.video.yawsp'
 TRAKT = 'script.trakt'
@@ -199,6 +200,25 @@ def defer_trakt_reminder():
     os.replace(temporary, path)
 
 
+def ensure_current_skin(changes):
+    def compatible():
+        version = addon_details(SKIN).get('version', '')
+        parts = tuple(int(part) for part in re.findall(r'\d+', version)[:3])
+        return parts >= MIN_SKIN
+    if compatible():
+        return
+    maintenance.set_setting('general.addonupdates', 0, changes)
+    maintenance.set_setting('addons.updatemode', 1, changes)
+    install_upstream_zip(JURIAL_REPO)
+    notify('Aktualizuji Arctic Fuse 3 a jeho součásti…')
+    xbmc.executebuiltin('UpdateAddonRepos')
+    if not wait_for(compatible, 180):
+        raise RuntimeError('Rodinné kino potřebuje Arctic Fuse 3 alespoň 3.5.4. '
+            'V Kodi otevři doplněk Arctic Fuse 3 → Verze, vyber novější vydání a znovu spusť instalátor. '
+            'Nastavení nabídek zatím nebylo změněno.')
+    dismiss_skin_wizard()
+
+
 def prepare():
     maintenance.setup_preflight()
     previous_skin = xbmc.getSkinDir()
@@ -214,6 +234,7 @@ def prepare():
         install_from_repo(SKIN)
     else:
         enable_installed(SKIN)
+    ensure_current_skin(changes)
     if not addon_details(YAWSP):
         for dependency in ('script.module.requests', 'script.module.unidecode'):
             install_from_repo(dependency)

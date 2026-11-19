@@ -164,6 +164,7 @@ class BootstrapTests(unittest.TestCase):
         def install(addon):
             self.installed[addon] = {'enabled': True, 'version': '1.0.0'}
             if addon == self.setup.SKIN:
+                self.installed[addon]['version'] = '3.5.4'
                 self.installed['plugin.video.themoviedb.helper'] = {'version': '6.22.4', 'enabled': True}
         with patch.object(self.setup, 'install_from_repo', side_effect=install) as repo:
             with patch.object(self.setup, 'install_upstream_zip', side_effect=install):
@@ -202,13 +203,33 @@ class BootstrapTests(unittest.TestCase):
 
     def test_existing_skin_does_not_trigger_download_or_language_switch_during_prepare(self):
         self.skin = self.setup.SKIN
-        self.installed[self.setup.SKIN] = {'enabled': True, 'version': '3.4.15'}
+        self.installed[self.setup.SKIN] = {'enabled': True, 'version': '3.5.4'}
         self.installed[self.setup.YAWSP] = {'enabled': True, 'version': '0.3.0'}
         with patch.object(self.setup, 'install_from_repo'):
             with patch.object(self.setup, 'urlopen') as download:
                 self.setup.prepare()
         download.assert_not_called()
         self.assertEqual(self.settings, {})
+
+    def test_old_skin_refreshes_repositories_and_waits_before_setting_up_menus(self):
+        self.installed[self.setup.SKIN] = {'enabled': True, 'version': '3.3.8'}
+        original = self.builtin
+        def update(command, wait=False):
+            if command == 'UpdateAddonRepos':
+                self.installed[self.setup.SKIN]['version'] = '3.5.6'
+            original(command, wait)
+        self.xbmc.executebuiltin.side_effect = update
+        with patch.object(self.setup, 'install_upstream_zip'):
+            self.setup.ensure_current_skin({})
+        self.assertIn('UpdateAddonRepos', [call.args[0] for call in self.xbmc.executebuiltin.call_args_list])
+        self.maintenance.set_setting.assert_any_call('general.addonupdates', 0, {})
+
+    def test_unavailable_skin_update_stops_before_modifying_family_layout(self):
+        self.installed[self.setup.SKIN] = {'enabled': True, 'version': '3.3.8'}
+        with patch.object(self.setup, 'install_upstream_zip'):
+            with self.assertRaisesRegex(RuntimeError, '3.5.4'):
+                self.setup.ensure_current_skin({})
+        self.maintenance.apply.assert_not_called()
 
     def test_skin_confirmation_waits_for_late_dialog(self):
         clock = [0.0]

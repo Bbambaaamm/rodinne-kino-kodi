@@ -2,6 +2,7 @@
 from hashlib import sha256
 from io import BytesIO
 import json
+import re
 from pathlib import Path
 from xml.etree import ElementTree as ET
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
@@ -14,6 +15,34 @@ PROVIDER = 'plugin.video.webshare.available'
 INSTALLER = 'script.michal.family.repair'
 REPOSITORY = 'repository.rodinne.kino'
 STATIC_SUFFIXES = {'.py', '.xml', '.json', '.po', '.png'}
+INSTALLER_HISTORY = 3
+
+
+def release_key(version):
+    if not re.fullmatch(r'\d+(?:\.\d+)*', version):
+        raise ValueError('Invalid release version: ' + version)
+    return tuple(int(part) for part in version.split('.'))
+
+
+def installer_history(release):
+    current = release_key(release)
+    available = []
+    for path in (DIST / INSTALLER).glob(f'{INSTALLER}-*.zip'):
+        version = path.name[len(INSTALLER) + 1:-4]
+        if release_key(version) > current:
+            continue
+        available.append((release_key(version), version, path))
+    selected = sorted(available, reverse=True)[:INSTALLER_HISTORY]
+    if not selected or selected[0][1] != release:
+        raise ValueError('Current installer archive is missing: ' + release)
+    result = []
+    for _, version, path in selected:
+        with ZipFile(path) as archive:
+            metadata = ET.fromstring(archive.read(INSTALLER + '/addon.xml'))
+        if metadata.get('id') != INSTALLER or metadata.get('version') != version:
+            raise ValueError('Installer archive metadata does not match ' + path.name)
+        result.append((version, path, metadata))
+    return result
 
 
 def source_files(addon):
@@ -82,7 +111,9 @@ def main():
         ('<!-- Rodinné kino ' + release + ' -->\n<window').encode('utf-8'), 1)
 
     index = ET.Element('addons')
-    index.append(write_addon(INSTALLER, installer))
+    write_addon(INSTALLER, installer)
+    for _, _, metadata in installer_history(release):
+        index.append(metadata)
     repository = write_addon(REPOSITORY, repository_files)
     index.append(repository)
     ET.indent(index, space='  ')
@@ -101,9 +132,17 @@ def write_install_source(repository, release):
     filename = f'{REPOSITORY}-{repository.attrib["version"]}.zip'
     archive = (DIST / REPOSITORY / filename).read_bytes()
     (site / filename).write_bytes(archive)
-    installer_filename = f'{INSTALLER}-{release}.zip'
-    installer_archive = (DIST / INSTALLER / installer_filename).read_bytes()
-    (site / installer_filename).write_bytes(installer_archive)
+    history = installer_history(release)
+    for _, path, _ in history:
+        (site / path.name).write_bytes(path.read_bytes())
+    installer_filename = history[0][1].name
+    installer_archive = history[0][1].read_bytes()
+    previous_links = '\n'.join(
+        f'<pre><a href="{path.name}">{path.name}</a> {path.stat().st_size} B</pre>'
+        for _, path, _ in history[1:])
+    previous_section = (f'<h2>Předchozí verze pro návrat</h2>\n{previous_links}\n'
+        '<p>Starší verze najdeš také v Kodi: Rodinné kino – instalace a servis → Verze. '
+        'Po změně nech Kodi chvíli na Domů, aby použilo nastavení vybraného vydání.</p>') if previous_links else ''
     (site / 'index.html').write_text(f'''<!doctype html>
 <html lang="cs">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Rodinné kino {release} pro Kodi</title></head>
@@ -120,6 +159,7 @@ def write_install_source(repository, release):
 <pre><a href="{installer_filename}">{installer_filename}</a> {len(installer_archive)} B</pre>
 <p>Pro instalaci jedním ZIPem vyber tento balíček přes Doplňky → Instalovat ze souboru ZIP. Potom spusť Rodinné kino – instalace a servis a potvrď nastavení.</p>
 <p>Instalátor přidá i repozitář pro další aktualizace.</p>
+{previous_section}
 <p><a href="https://github.com/Bbambaaamm/rodinne-kino-kodi#instalace">Návod k instalaci</a></p>
 </body>
 </html>
