@@ -50,6 +50,19 @@ SETTINGS = '''<window><controls>
         <include content="Settings_Dialog" />
     </controls>
 </window>'''
+CONFIRM = '''<includes>
+<include name="DialogConfirm">
+    <include content="Object_Hidden_Button"><param name="id">10</param><onfocus>SetFocus(9010)</onfocus></include>
+    <include content="Object_Hidden_Button"><param name="id">11</param><onfocus>SetFocus(9011)</onfocus></include>
+    <include content="Object_Hidden_Button"><param name="id">12</param><onfocus>SetFocus(9012)</onfocus></include>
+    <control type="textbox" id="9"/><control type="progress" id="20"/>
+</include>
+<include name="DialogConfirm_Items"><definition>
+    <include content="Button_Dialog"><param name="id">9011</param></include>
+    <include content="Button_Dialog"><param name="id">9010</param></include>
+    <include content="Button_Dialog"><param name="id">9012</param></include>
+</definition></include>
+</includes>'''
 
 
 class SkinInputTests(unittest.TestCase):
@@ -115,10 +128,34 @@ class SkinInputTests(unittest.TestCase):
             'Control.Move($PARAM[id],3)'])
         self.assertEqual(skin_input.categories(result), result)
 
+    def test_confirmation_uses_native_kodi_choices_without_hidden_proxies(self):
+        result = skin_input.confirmation(CONFIRM)
+        root = ET.fromstring(result)
+        self.assertFalse(root.findall(".//include[@content='Object_Hidden_Button']"))
+        choices = root.findall("./include[@name='DialogConfirm_Items']/definition/control")
+        self.assertEqual([c.get('id') for c in choices], ['11', '10', '12'])
+        for control in choices:
+            self.assertEqual(control.get('type'), 'button')
+            self.assertEqual(control.findtext('height'), '90')
+            self.assertEqual(control.findtext('width'), '100%')
+            self.assertIsNone(control.find('onclick'))  # Kodi handles the real choice IDs.
+        self.assertIsNotNone(root.find(".//control[@id='9']"))
+        self.assertIsNotNone(root.find(".//control[@id='20']"))
+        self.assertEqual(skin_input.confirmation(result), result)
+
+    def test_all_remote_directions_skip_unavailable_choices(self):
+        root = ET.fromstring(skin_input.confirmation(CONFIRM))
+        for control in root.findall("./include[@name='DialogConfirm_Items']/definition/control"):
+            for direction in ('onup', 'ondown', 'onleft', 'onright'):
+                rules = control.findall(direction)
+                self.assertEqual(len(rules), 3)
+                self.assertTrue(all('IsEnabled' in rule.get('condition') for rule in rules))
+                self.assertEqual(rules[-1].text, control.get('id'))
+
     def test_changed_upstream_structure_fails_before_writing(self):
         for transform in (skin_input.home, skin_input.hubs, skin_input.keyboard,
                           skin_input.categories, skin_input.streaming_hub,
-                          skin_input.settings):
+                          skin_input.settings, skin_input.confirmation):
             with self.subTest(transform=transform.__name__):
                 with self.assertRaises(RuntimeError):
                     transform('<includes />')

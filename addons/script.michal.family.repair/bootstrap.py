@@ -149,23 +149,27 @@ def install_from_repo(addon):
 def wait_for_skin_confirmation():
     monitor = xbmc.Monitor()
     deadline = time.monotonic() + 45
-    active_since = None
+    settled_since = None
     confirmation_seen = False
     while time.monotonic() < deadline:
-        confirming = xbmc.getCondVisibility('Window.IsActive(yesnodialog)')
+        confirming = xbmc.getCondVisibility('Window.IsVisible(yesnodialog)')
         confirmation_seen = confirmation_seen or confirming
         selected = maintenance.rpc('Settings.GetSettingValue', {'setting': 'lookandfeel.skin'})['value']
         if confirmation_seen and not confirming and selected != SKIN:
             break
         if xbmc.getSkinDir() == SKIN:
             dismiss_skin_wizard()
-            if active_since is None:
-                active_since = time.monotonic()
-            # Kodi exposes the new skin before displaying its keep/revert
-            # dialog. Allow that dialog to arrive and its timeout to expire.
-            settled = time.monotonic() - active_since >= (1 if confirmation_seen else 12)
-            if settled and not confirming and selected == SKIN:
-                return
+            # A progress dialog can cover the still-visible keep/revert
+            # dialog. Never mistake that overlay for the user's confirmation.
+            settled = (confirmation_seen and not confirming and selected == SKIN
+                       and xbmcgui.getCurrentWindowDialogId() in (0, 9999))
+            if settled:
+                if settled_since is None:
+                    settled_since = time.monotonic()
+                if time.monotonic() - settled_since >= 2:
+                    return
+            else:
+                settled_since = None
         elif confirmation_seen and not confirming:
             break
         if monitor.waitForAbort(.1):
@@ -176,6 +180,7 @@ def wait_for_skin_confirmation():
 def dismiss_skin_wizard():
     if xbmc.getSkinDir() != SKIN:
         return
+    xbmc.executebuiltin('CancelAlarm(setupwizardopen,true)', True)
     if xbmc.getCondVisibility('Skin.HasSetting(SetupWizard.Pending)'):
         xbmc.executebuiltin('Skin.Reset(SetupWizard.Pending)', True)
     if xbmc.getCondVisibility('Window.IsVisible(11130)'):
@@ -250,6 +255,7 @@ def prepare():
     maintenance.setup_preflight()
     dismiss_skin_wizard()
     if xbmc.getSkinDir() != SKIN:
+        maintenance.confirmation_skin_patch()
         notify('Potvrď změnu vzhledu na Arctic Fuse 3.')
         if not maintenance.rpc('Settings.SetSettingValue', {'setting': 'lookandfeel.skin', 'value': SKIN}):
             raise RuntimeError('Kodi nedokázalo přepnout na Arctic Fuse 3.')

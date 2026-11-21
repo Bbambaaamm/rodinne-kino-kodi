@@ -47,7 +47,8 @@ class Snapshot:
         paths.update(m.streaming_template_path(name) for name in m.STREAMING_TEMPLATES)
         paths.update(m.streaming_template_backup(name) for name in m.STREAMING_TEMPLATES)
         for name in ('Custom_1105_Search.xml', 'Includes_Home.xml', 'Includes_Hubs.xml',
-                     'Dialog_DialogKeyboard.xml', 'Includes_Info.xml', 'Includes_Layouts.xml'):
+                     'Dialog_DialogKeyboard.xml', 'Dialog_DialogConfirm.xml',
+                     'Includes_Info.xml', 'Includes_Layouts.xml'):
             paths.add(os.path.join(m.search_skin_backup(), name))
         nodes = os.path.join(m.USER, 'addon_data', 'script.skinvariables', 'nodes', 'skin.arctic.fuse.3')
         paths.update(os.path.join(nodes, 'skinvariables-shortcut-' + name + '.json')

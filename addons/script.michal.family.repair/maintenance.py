@@ -450,6 +450,28 @@ def search_patch():
     return True
 
 
+def confirmation_skin_patch():
+    # Prepare the target skin before Kodi loads its keep/revert dialog.
+    folder = local_path(xbmcvfs.translatePath(xbmcaddon.Addon('skin.arctic.fuse.3').getAddonInfo('path')))
+    name = 'Dialog_DialogConfirm.xml'
+    path = os.path.join(folder, '1080i', name)
+    with open(path, encoding='utf-8') as source:
+        original = source.read()
+    updated = skin_input.confirmation(original)
+    if updated == original:
+        return False
+    backup = search_skin_backup()
+    os.makedirs(backup, exist_ok=True)
+    previous = os.path.join(backup, name)
+    if not os.path.isfile(previous):
+        shutil.copyfile(path, previous)
+    temporary = path + '.family-new'
+    with open(temporary, 'w', encoding='utf-8') as target:
+        target.write(updated)
+    os.replace(temporary, path)
+    return True
+
+
 def input_skin_patch():
     if xbmc.getSkinDir() != 'skin.arctic.fuse.3':
         return False
@@ -460,6 +482,7 @@ def input_skin_patch():
         'Custom_1104_Hub.xml': skin_input.streaming_hub,
         'Settings.xml': skin_input.settings,
         'Dialog_DialogKeyboard.xml': skin_input.keyboard,
+        'Dialog_DialogConfirm.xml': skin_input.confirmation,
     }
     changes = []
     for name, transform in transforms.items():
@@ -1496,7 +1519,8 @@ def rollback():
         shutil.copyfile(old_translation, translated)
     elif os.path.isfile(translated):
         os.remove(translated)
-    for name in ('Custom_1105_Search.xml', 'Includes_Home.xml', 'Includes_Info.xml', 'Includes_Layouts.xml'):
+    for name in ('Custom_1105_Search.xml', 'Includes_Home.xml', 'Includes_Info.xml',
+                 'Includes_Layouts.xml', 'Dialog_DialogConfirm.xml'):
         old_search = os.path.join(search_skin_backup(), name)
         if not os.path.isfile(old_search) and name == 'Custom_1105_Search.xml':
             old_search = os.path.join(baseline, 'skin.arctic.fuse.3', '1080i', name)

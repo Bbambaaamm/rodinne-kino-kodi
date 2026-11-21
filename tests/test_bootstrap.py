@@ -34,7 +34,7 @@ class BootstrapTests(unittest.TestCase):
             HOME_PATH=str(self.root), PROFILE=str(self.root), USER=str(self.root / 'userdata'), HOME=self.home,
             rpc=Mock(side_effect=self.rpc), read_json=self.read_json,
             write_json=lambda path, data: Path(path).write_text(json.dumps(data)),
-            set_setting=Mock(), setup_preflight=Mock(), apply=Mock(),
+            set_setting=Mock(), setup_preflight=Mock(), apply=Mock(), confirmation_skin_patch=Mock(),
         )
         self.xbmc = types.SimpleNamespace(
             getSkinDir=lambda: self.skin, getCondVisibility=lambda _: False,
@@ -43,7 +43,8 @@ class BootstrapTests(unittest.TestCase):
         )
         self.dialog = Mock()
         modules = {'maintenance': self.maintenance, 'xbmc': self.xbmc,
-                   'xbmcgui': types.SimpleNamespace(Dialog=lambda: self.dialog)}
+                   'xbmcgui': types.SimpleNamespace(Dialog=lambda: self.dialog,
+                                                   getCurrentWindowDialogId=lambda: 9999)}
         with patch.dict(sys.modules, modules):
             spec = importlib.util.spec_from_file_location('tested_bootstrap', SOURCE)
             self.setup = importlib.util.module_from_spec(spec)
@@ -171,6 +172,7 @@ class BootstrapTests(unittest.TestCase):
                 with patch.object(self.setup, 'wait_for_skin_confirmation') as confirmation:
                     self.setup.prepare()
         confirmation.assert_called_once()
+        self.maintenance.confirmation_skin_patch.assert_called_once_with()
         self.assertEqual(self.skin, self.setup.SKIN)
         self.assertIn('resource.language.cs_cz', [call.args[0] for call in repo.call_args_list])
         self.assertIn('script.module.tmdbhelper.sync.trakt', self.installed)
@@ -256,6 +258,34 @@ class BootstrapTests(unittest.TestCase):
         with patch.object(self.setup.time, 'monotonic', side_effect=lambda: clock[0]):
             with self.assertRaises(RuntimeError):
                 self.setup.wait_for_skin_confirmation()
+
+    def test_confirmation_covered_by_progress_dialog_is_still_pending(self):
+        clock = [0.0]
+        def wait(seconds):
+            clock[0] += seconds
+            return False
+        self.skin = self.setup.SKIN
+        self.xbmc.Monitor = lambda: types.SimpleNamespace(waitForAbort=wait)
+        self.xbmc.getCondVisibility = lambda condition: (condition == 'Window.IsVisible(yesnodialog)'
+                                                        and .5 < clock[0] < 4)
+        self.setup.xbmcgui.getCurrentWindowDialogId = lambda: 10138 if clock[0] < 5 else 9999
+        with patch.object(self.setup.time, 'monotonic', side_effect=lambda: clock[0]):
+            self.setup.wait_for_skin_confirmation()
+        self.assertGreaterEqual(clock[0], 7)
+
+    def test_missing_confirmation_never_counts_as_user_approval(self):
+        self.skin = self.setup.SKIN
+        with self.assertRaises(RuntimeError):
+            self.setup.wait_for_skin_confirmation()
+
+    def test_setup_wizard_alarm_is_cancelled_without_dismissing_confirmation(self):
+        self.skin = self.setup.SKIN
+        self.xbmc.getCondVisibility = lambda condition: condition == 'Window.IsVisible(11130)'
+        self.setup.dismiss_skin_wizard()
+        commands = [call.args[0] for call in self.xbmc.executebuiltin.call_args_list]
+        self.assertIn('CancelAlarm(setupwizardopen,true)', commands)
+        self.assertIn('Dialog.Close(11130,true)', commands)
+        self.assertFalse(any('10100' in command or 'SendClick' in command for command in commands))
 
 
 if __name__ == '__main__':

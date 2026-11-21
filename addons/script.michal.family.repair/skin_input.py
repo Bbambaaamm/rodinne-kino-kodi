@@ -106,6 +106,48 @@ def keyboard(original):
     return updated
 
 
+def confirmation(original):
+    """Use Kodi's real choice buttons for remote keys and full-size touch targets."""
+    marker = 'Rodinne kino: native confirmation controls'
+    if marker in original:
+        ET.fromstring(original)
+        return original
+    root = ET.fromstring(original)
+    dialog = root.find("./include[@name='DialogConfirm']")
+    items = root.find("./include[@name='DialogConfirm_Items']/definition")
+    if dialog is None or items is None:
+        raise RuntimeError('Arctic Fuse confirmation dialog missing')
+    hidden = [node for node in dialog.findall("include[@content='Object_Hidden_Button']")
+              if node.findtext("param[@name='id']") in ('10', '11', '12')]
+    choices = items.findall("include[@content='Button_Dialog']")
+    if (len(hidden) != 3 or len(list(items)) != 3
+            or [node.findtext("param[@name='id']") for node in choices] != ['9011', '9010', '9012']):
+        raise RuntimeError('Arctic Fuse confirmation buttons changed')
+    for node in hidden:
+        dialog.remove(node)
+    items.clear()
+    items.append(ET.Comment(marker))
+    # Kodi sets labels, visibility, focus and click results on 10/11/12 itself.
+    # Proxy buttons 9010/9011 cannot reliably retain that state across a reload.
+    for control_id, previous, following in ((11, 12, 10), (10, 11, 12), (12, 10, 11)):
+        button = ET.SubElement(items, 'control', type='button', id=str(control_id))
+        for name, value in (('width', '100%'), ('height', '90'), ('font', 'font_main'),
+                            ('align', 'center'), ('aligny', 'center'), ('textoffsetx', '12'),
+                            ('textcolor', 'dialog_fg_100'), ('focusedcolor', 'FF111114')):
+            ET.SubElement(button, name).text = value
+        ET.SubElement(button, 'label')
+        for name, color in (('texturenofocus', '20FFFFFF'), ('texturefocus', 'FFFFFFFF')):
+            ET.SubElement(button, name, border='40', colordiffuse=color).text = 'common/menu.png'
+        for direction, first, second in (('onup', previous, following), ('onleft', previous, following),
+                                          ('ondown', following, previous), ('onright', following, previous)):
+            available = lambda cid: f'[Control.IsVisible({cid}) + Control.IsEnabled({cid})]'
+            ET.SubElement(button, direction, condition=available(first)).text = str(first)
+            ET.SubElement(button, direction, condition='!' + available(first) + ' + ' + available(second)).text = str(second)
+            ET.SubElement(button, direction, condition='!' + available(first) + ' + !' + available(second)).text = str(control_id)
+    ET.indent(root, space='    ')
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' + ET.tostring(root, encoding='unicode') + '\n'
+
+
 def categories(original):
     """Make the visible next-category labels respond to Android taps."""
     start = original.find('    <include name="Categories_Selector_OverlayList">')
