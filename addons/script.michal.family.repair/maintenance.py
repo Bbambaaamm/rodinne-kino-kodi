@@ -308,7 +308,11 @@ def ratings_skin_text(original):
     if marker in original:
         return original
     meta = ET.fromstring(original).find("./include[@name='Info_Meta']/definition")
-    if meta is None or original.count(anchor) != 1 or len(meta.findall(".//include[@content='Info_Meta_Ratings']")) < 2:
+    legacy_ratings = meta is not None and len(meta.findall(".//include[@content='Info_Meta_Ratings']")) >= 2
+    generated_ratings = meta is not None and all(
+        meta.find(".//include[@content='skinvariables-ratings" + kind + "']") is not None
+        for kind in ('movies', 'tvshows', 'episodes'))
+    if meta is None or original.count(anchor) != 1 or not (legacy_ratings or generated_ratings):
         raise RuntimeError('Arctic Fuse ratings row is unavailable')
     item = '$PARAM[container]$PARAM[listitem].'
     home = 'Window(Home).Property(Family.CSFD.'
@@ -778,6 +782,28 @@ def streaming_poster_rule(original):
     return original.replace(marker, marker + rule, 1)
 
 
+def streaming_combined_text(original, selected):
+    root = ET.fromstring(original)
+    visible = root.find("param[@name='visible']")
+    if (root.tag != 'include' or root.get('content') != 'Hub_Combined_Widget'
+            or visible is None or visible.text not in (selected, selected + ' + [{widget_hub_visible}]')
+            or original.count('<param name="autoscroll">') != 1):
+        raise RuntimeError('Streaming combined widget layout changed')
+    native_visible = visible.text
+    old = '<param name="visible">' + native_visible + '</param>'
+    if original.count(old) != 1:
+        raise RuntimeError('Streaming combined widget visibility changed')
+    updated = original.replace('<param name="autoscroll">',
+        '<param name="allowhiddenfocus">{family_catalogue_focus}</param>\n    <param name="autoscroll">', 1)
+    updated = updated.replace(old, '<param name="visible">' + native_visible + ' + {family_catalogue_ready}</param>', 1)
+    busy_visible = native_visible + ' + {family_catalogue_busy}'
+    return updated.rstrip() + (
+        '\n<include content="Widget_Busy" condition="{family_catalogue_embedded}">'
+        '<param name="visible">' + busy_visible + '</param>'
+        '<param name="include">List_Poster_Row</param>'
+        '<top>510</top><left>view_pad</left><visible>' + busy_visible + '</visible></include>\n')
+
+
 def patch_streaming_templates():
     # Kodi refreshes only visible or focusable rows. The two catalogue rows
     # must be able to load before the user can switch to their selectors.
@@ -803,18 +829,9 @@ def patch_streaming_templates():
             ET.SubElement(rule, 'condition').text = condition
             ET.SubElement(rule, 'value').text = result
     extra = '\n'.join(ET.tostring(rule, encoding='unicode') for rule in rules)
-    busy_visible = selected + ' + {family_catalogue_busy}'
-    busy = (
-        '\n<include content="Widget_Busy" condition="{family_catalogue_embedded}">'
-        '<param name="visible">' + busy_visible + '</param>'
-        '<param name="include">List_Poster_Row</param>'
-        '<top>510</top><left>view_pad</left><visible>' + busy_visible + '</visible></include>'
-    )
     transforms = (
         [('</contents>', extra + '\n</contents>')],
-        [('<param name="autoscroll">', '<param name="allowhiddenfocus">{family_catalogue_focus}</param>\n    <param name="autoscroll">'),
-         ('<param name="visible">'+selected+'</param>\n</include>',
-          '<param name="visible">'+selected+' + {family_catalogue_ready}</param>\n</include>'+busy)],
+        [],
         [(open_directory, '{family_selector_action}'),
          (has_items[1:-1], '{family_catalogue_selector}')],
     )
@@ -835,6 +852,8 @@ def patch_streaming_templates():
             if 'family_catalogue_' in original:
                 with open(streaming_template_backup(name),encoding='utf-8') as backup_source:
                     updated=backup_source.read()
+            if index == 1:
+                updated = streaming_combined_text(updated, selected)
             for before, after in transforms[index]:
                 if updated.count(before) != 1:
                     raise RuntimeError('Streaming template layout changed: ' + name)
