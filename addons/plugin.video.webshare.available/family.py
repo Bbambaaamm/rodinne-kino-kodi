@@ -20,7 +20,7 @@ import xbmcplugin
 import xbmcvfs
 
 import core
-from matching import attributes, normal, rank_source, source_label, valid_source
+from matching import attributes, episode_source_titles, normal, rank_source, source_label, valid_source
 from matching import source_attributes, track_lines, source_summary
 from streams import HTTPReader, inspect as inspect_streams
 
@@ -431,7 +431,7 @@ def missing_list_account(value):
 
 def find_sources(record):
     item, meta = record['item'], record['meta']
-    key = 'family_sources_v2_' + media_key(item['kind'], item['tmdb_id'], item.get('season'), item.get('episode'))
+    key = 'family_sources_v3_' + media_key(item['kind'], item['tmdb_id'], item.get('season'), item.get('episode'))
     cached = core.read_cache_entry('list', key, 600)
     if cached is not None:
         return cached
@@ -440,9 +440,12 @@ def find_sources(record):
     # An episode title is never a substitute for a show identity.
     if item['kind'] == 'episode':
         aliases = list(dict.fromkeys([v for v in [meta.get('show_title'), meta.get('original_show_title')] + (meta.get('show_titles') or []) + [item.get('show_title')] if v]))
+        aliases, search_titles = episode_source_titles(aliases)
+    else:
+        search_titles = aliases[:4]
     token = core.get_webshare_token()
     output, seen, queries = [], set(), []
-    for alias in aliases[:4]:
+    for alias in search_titles:
         query = '{} S{:02d}E{:02d}'.format(alias, item['season'], item['episode']) if item['kind'] == 'episode' else '{} {}'.format(alias, meta.get('year') or item.get('year') or '')
         queries.append(query)
         for candidate in core.webshare_search(query, token, limit=100):

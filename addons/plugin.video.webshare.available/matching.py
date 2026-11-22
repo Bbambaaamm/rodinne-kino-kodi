@@ -16,6 +16,42 @@ def normal(value):
     value = ''.join(c for c in unicodedata.normalize('NFKD', value or '') if not unicodedata.combining(c)).lower()
     return re.sub(r'[^a-z0-9]+', ' ', value).strip()
 
+def episode_source_titles(titles):
+    """Keep official identities and search distinctive canonical subtitles too."""
+    def unique(values):
+        result, seen = [], set()
+        for value in values:
+            key = normal(value) or value.casefold().strip()
+            if key and key not in seen:
+                result.append(value.strip())
+                seen.add(key)
+        return result
+
+    full = unique(titles)
+    shortened = []
+    stopwords = {'the', 'a', 'an', 'of', 'and', 'or', 'to', 'for', 'in', 'on', 'at',
+                 'by', 'with', 'from', 'i', 'v', 've', 'na', 'do', 'o', 'pro',
+                 'z', 'ze', 's', 'se', 'u'}
+    for title in full[:2]:
+        prefix, separator, subtitle = title.partition(':')
+        if not separator or not normal(prefix):
+            continue
+        words = normal(subtitle).split()
+        distinctive = [word for word in words if word not in stopwords]
+        # Single words, numbered parts and generic labels are not safe show
+        # identities. Do not match arbitrary words from a filename.
+        if (len(distinctive) < 2 or sum(map(len, distinctive)) < 8
+                or any(character.isdigit() for character in subtitle)
+                or normal(subtitle) in ('the series', 'tv series', 'limited series', 'new series')):
+            continue
+        shortened.append(subtitle.strip())
+    aliases = unique(full + shortened)
+    # Keep four requests: CZ/original names and their short forms take
+    # precedence over less relevant translations.
+    queries = unique(full[:2] + shortened + full[2:])[:4]
+    return aliases, queries
+
+
 def markers(name):
     result = []
     for regex in EPISODES:
