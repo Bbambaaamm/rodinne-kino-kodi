@@ -1,5 +1,19 @@
 <?xml version='1.0' encoding='utf-8'?>
 <addons>
+  <addon id="script.michal.family.repair" name="Rodinné kino – instalace a servis" version="1.8.17" provider-name="Rodinné kino">
+    <requires>
+      <import addon="xbmc.python" version="3.0.0" />
+    </requires>
+    <extension point="xbmc.python.script" library="default.py" />
+    <extension point="xbmc.service" library="service.py" start="login" />
+    <extension point="xbmc.addon.metadata">
+      <summary lang="cs_CZ">Instalace a nastavení Rodinného kina pro Arctic Fuse 3.</summary>
+      <description lang="cs_CZ">Nainstaluje Arctic Fuse 3 a potřebné doplňky, vytvoří místní zálohu a nastaví české filmové nabídky, hledání a ovládání. Používá vlastní účty služeb zadané v Kodi.</description>
+      <platform>all</platform>
+      <license>MIT</license>
+      <source>https://github.com/Bbambaaamm/rodinne-kino-kodi</source>
+    </extension>
+  </addon>
   <addon id="script.michal.family.repair" name="Rodinné kino – instalace a servis" version="1.8.16" provider-name="Rodinné kino">
     <requires>
       <import addon="xbmc.python" version="3.0.0" />
@@ -15,20 +29,6 @@
     </extension>
   </addon>
   <addon id="script.michal.family.repair" name="Rodinné kino – instalace a servis" version="1.8.15" provider-name="Rodinné kino">
-    <requires>
-      <import addon="xbmc.python" version="3.0.0" />
-    </requires>
-    <extension point="xbmc.python.script" library="default.py" />
-    <extension point="xbmc.service" library="service.py" start="login" />
-    <extension point="xbmc.addon.metadata">
-      <summary lang="cs_CZ">Instalace a nastavení Rodinného kina pro Arctic Fuse 3.</summary>
-      <description lang="cs_CZ">Nainstaluje Arctic Fuse 3 a potřebné doplňky, vytvoří místní zálohu a nastaví české filmové nabídky, hledání a ovládání. Používá vlastní účty služeb zadané v Kodi.</description>
-      <platform>all</platform>
-      <license>MIT</license>
-      <source>https://github.com/Bbambaaamm/rodinne-kino-kodi</source>
-    </extension>
-  </addon>
-  <addon id="script.michal.family.repair" name="Rodinné kino – instalace a servis" version="1.8.14" provider-name="Rodinné kino">
     <requires>
       <import addon="xbmc.python" version="3.0.0" />
     </requires>

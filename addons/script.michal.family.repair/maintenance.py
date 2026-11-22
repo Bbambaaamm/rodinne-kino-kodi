@@ -1097,6 +1097,9 @@ def apply(backup_function, restart_service=True):
     status('applied', version=VERSION, provider=packaged_provider_version(), backup=baseline['path'], credentials_exported=False)
 
 def back_playback():
+    if HOME.getProperty('Family.Compat.Busy'):
+        HOME.setProperty('Family.Compat.Cancel', 'true')
+        return
     if not video_active():
         xbmc.executebuiltin('Action(Back)')
         return
@@ -1109,17 +1112,47 @@ def back_playback():
     if was_playing:
         rpc('Player.PlayPause', {'playerid': 1, 'play': False})
     try:
-        choice = xbmcgui.Dialog().select('Přehrávání je pozastavené', ['Pokračovat ve videu', 'Ukončit přehrávání'], preselect=0)
+        options = ['Pokračovat ve videu', 'Ukončit přehrávání']
+        if xbmc.getCondVisibility('System.Platform.Android'):
+            options.append('Kompatibilní přehrávání')
+        choice = xbmcgui.Dialog().select('Přehrávání je pozastavené', options, preselect=0)
         if choice == 1:
             rpc('Player.Stop', {'playerid': 1})
+        elif choice == 2:
+            if not request_compatibility(was_playing) and was_playing and video_active():
+                rpc('Player.PlayPause', {'playerid': 1, 'play': True})
         elif video_active():
             if was_playing or choice == 0:
                 rpc('Player.PlayPause', {'playerid': 1, 'play': True})
     finally:
         HOME.clearProperty('Family.PauseMenu')
 
+def request_compatibility(play=True):
+    """Queue one explicit request; the service owns all decoder changes."""
+    try:
+        alive = time.time() - float(HOME.getProperty('Family.Service.Heartbeat') or 0) < 5
+    except ValueError:
+        alive = False
+    if not alive:
+        xbmcgui.Dialog().notification('Rodinné kino', 'Služba přehrávání není připravená. Zkus to znovu.', sound=False)
+        return False
+    data = rpc('Player.GetProperties', {'playerid': 1, 'properties': ['currentvideostream']}) or {}
+    video = data.get('currentvideostream') or {}
+    if video.get('width', 0) > 1920 or video.get('height', 0) > 1080:
+        if not xbmcgui.Dialog().yesno('Kompatibilní přehrávání',
+                'U náročného videa může být tento režim pomalejší. Chceš ho vyzkoušet?',
+                nolabel='Zpět', yeslabel='Vyzkoušet', defaultbutton=xbmcgui.DLG_YESNO_NO_BTN):
+            return False
+    HOME.setProperty('Family.Compat.Busy', 'true')
+    HOME.setProperty('Family.Compat.Request', json.dumps({'created': time.time(), 'play': bool(play)}))
+    return True
+
+
 def back():
     HOME.setProperty('Family.CancelGeneration', str(time.time()))
+    if HOME.getProperty('Family.Compat.Busy'):
+        HOME.setProperty('Family.Compat.Cancel', 'true')
+        return
     dialog = xbmcgui.getCurrentWindowDialogId()
     if dialog not in (0, 9999):
         xbmc.executebuiltin('Action(Back)')
@@ -1160,6 +1193,38 @@ def service(updater=None):
         return
     tracking = provider_module('tracking')
     player = tracking.ResumePlayer()
+    compatibility_progress = None
+    def compatibility_status(value):
+        nonlocal compatibility_progress
+        HOME.setProperty('Family.Compat.Status', json.dumps(value))
+        if value.get('busy'):
+            HOME.setProperty('Family.Compat.Busy', 'true')
+            # Entering fullscreen can close a progress dialog. Reopen it for
+            # the restore stage, unless the user explicitly cancelled it.
+            if (compatibility_progress is not None
+                    and not compatibility_progress.iscanceled()
+                    and not xbmc.getCondVisibility('Window.IsVisible(progressdialog)')):
+                compatibility_progress.close()
+                compatibility_progress = None
+            if compatibility_progress is None:
+                compatibility_progress = xbmcgui.DialogProgress()
+                compatibility_progress.create('Kompatibilní přehrávání', 'Připravuji přehrávání…')
+            phase = value.get('phase')
+            if phase == 'cancelling':
+                compatibility_progress.update(30, 'Vracím původní přehrávání…')
+            elif phase == 'restoring_position':
+                compatibility_progress.update(75, 'Obnovuji místo přehrávání…')
+            else:
+                compatibility_progress.update(20, 'Připravuji přehrávání…')
+        else:
+            HOME.clearProperty('Family.Compat.Busy')
+            if compatibility_progress is not None:
+                compatibility_progress.close()
+                compatibility_progress = None
+        if value.get('phase') == 'failed':
+            xbmcgui.Dialog().notification('Rodinné kino', 'Kompatibilní přehrávání se nepodařilo spustit.', sound=False)
+    compatibility = provider_module('playback_compat').CompatibilityPlayer(
+        rpc, os.path.join(PROFILE, 'decoder-recovery.json'), compatibility_status)
     family = provider_module()
     pager = provider_module('autopaging').Pager(family)
     ratings = provider_module('csfd').Ratings(family)
@@ -1172,6 +1237,28 @@ def service(updater=None):
         while (not monitor.abortRequested() and not HOME.getProperty('Family.Service.Stop')
                and HOME.getProperty('Family.Service.Lock') == token):
             HOME.setProperty('Family.Service.Heartbeat', str(time.time()))
+            request = HOME.getProperty('Family.Compat.Request')
+            if request:
+                HOME.clearProperty('Family.Compat.Request')
+                try:
+                    request = json.loads(request)
+                    if 0 <= time.time() - float(request['created']) < 5 and type(request['play']) is bool:
+                        compatibility.start(request['play'])
+                    else:
+                        compatibility.status('ignored_request')
+                except (ValueError, TypeError, KeyError):
+                    compatibility.status('ignored_request')
+            if HOME.getProperty('Family.Compat.Cancel'):
+                HOME.clearProperty('Family.Compat.Cancel')
+                compatibility.cancel()
+            if (compatibility.active and compatibility_progress is not None
+                    and compatibility_progress.iscanceled()
+                    and not compatibility.active.get('cancel_requested')):
+                compatibility.cancel()
+            if compatibility.tick(player):
+                if monitor.waitForAbort(.2):
+                    break
+                continue
             player.tick()
             current = xbmcgui.getCurrentWindowId()
             browsing = (current in (10000, 10025, 11101, 11102, 11103, 11104)
@@ -1224,6 +1311,9 @@ def service(updater=None):
             if monitor.waitForAbort(0.08 if current==11104 else 0.25):
                 break
     finally:
+        compatibility.close()
+        if compatibility_progress is not None:
+            compatibility_progress.close()
         pager.close()
         ratings.close()
         movie_watch.close()
