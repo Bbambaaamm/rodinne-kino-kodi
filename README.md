@@ -21,7 +21,9 @@ Instalaci přímo z internetu přidáš přes **Nastavení → Správce souborů
 
 Na Homaticsu Box R 4K Plus s Kodi 21.2 se při změně z instalátoru zobrazilo potvrzovací okno bez aktivního výběru. Stejná změna přes Nastavení měla aktivní výběr a ovladačem fungovala. Výslovné předání výběru na nativní tlačítko „Ne“ obnovilo přepínání šipkami také v zaseknutém okně.
 
-Instalátor nyní při otevření svého potvrzení ověří aktivní výběr. Chybí-li, jednou jej předá na „Ne“. Již zvolené tlačítko zachová a při překrytí jiným dialogem počká. Výsledek dál potvrzuje uživatel; Zpět ani časový limit se nepočítají jako souhlas. Ověření celého nového balíčku na zařízení zatím probíhá.
+Instalátor nyní při otevření svého potvrzení ověří aktivní výběr. Chybí-li, jednou jej předá na „Ne“. Již zvolené tlačítko zachová a při překrytí jiným dialogem počká. Výsledek dál potvrzuje uživatel; Zpět ani časový limit se nepočítají jako souhlas.
+
+Na stejném Homaticsu byl 22. listopadu 2026 ověřen aktivní výběr a uživatel potvrdil funkční přesouvání fyzickým ovladačem. Následná ručně potvrzená instalace dokončila místní zálohu, nabídky i filmový doplněk 0.9.18 a zaznamenala úspěšně použitou verzi 1.8.13. Služba na pozadí běží a nehlásí chybu údržby. Prošlo 95 automatických kontrol včetně zachování již zvoleného tlačítka a čekání na skutečně aktivní potvrzení.
 
 ## Navigace v potvrzení vzhledu 1.8.12
 
