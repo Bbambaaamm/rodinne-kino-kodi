@@ -56,6 +56,9 @@ CONFIRM = '''<includes>
     <include content="Object_Hidden_Button"><param name="id">11</param><onfocus>SetFocus(9011)</onfocus></include>
     <include content="Object_Hidden_Button"><param name="id">12</param><onfocus>SetFocus(9012)</onfocus></include>
     <control type="textbox" id="9"/><control type="progress" id="20"/>
+    <control type="group" id="8000"><include content="Part_Button_Grouplist">
+        <param name="onleft">61</param><param name="items">DialogConfirm_Items</param>
+    </include></control>
 </include>
 <include name="DialogConfirm_Items"><definition>
     <include content="Button_Dialog"><param name="id">9011</param></include>
@@ -151,6 +154,32 @@ class SkinInputTests(unittest.TestCase):
                 self.assertEqual(len(rules), 3)
                 self.assertTrue(all('IsEnabled' in rule.get('condition') for rule in rules))
                 self.assertEqual(rules[-1].text, control.get('id'))
+
+    def test_confirmation_routes_are_not_overwritten_by_a_grouplist(self):
+        result = skin_input.confirmation(CONFIRM)
+        root = ET.fromstring(result)
+        dialog = root.find("./include[@name='DialogConfirm']")
+        self.assertFalse(dialog.findall(".//include[@content='Part_Button_Grouplist']"))
+        panel = dialog.find(".//control[@id='9000']")
+        self.assertEqual(panel.get('type'), 'group')
+        self.assertEqual(panel.findtext('./control/defaultcontrol'), '10')
+        self.assertEqual(panel.findtext('./control/include[2]'), 'DialogConfirm_Items')
+        choices = root.findall("./include[@name='DialogConfirm_Items']/definition/control")
+        self.assertEqual([choice.findtext('top') for choice in choices], ['0', '110', '220'])
+
+    def test_installed_native_button_patch_is_upgraded(self):
+        old = ET.fromstring(CONFIRM)
+        dialog = old.find("./include[@name='DialogConfirm']")
+        for node in list(dialog.findall("include[@content='Object_Hidden_Button']")):
+            dialog.remove(node)
+        items = old.find("./include[@name='DialogConfirm_Items']/definition")
+        items.clear()
+        items.append(ET.Comment('Rodinne kino: native confirmation controls'))
+        for control_id in ('11', '10', '12'):
+            ET.SubElement(items, 'control', type='button', id=control_id)
+        result = skin_input.confirmation(ET.tostring(old, encoding='unicode'))
+        self.assertIn('native confirmation navigation v2', result)
+        self.assertEqual(skin_input.confirmation(result), result)
 
     def test_changed_upstream_structure_fails_before_writing(self):
         for transform in (skin_input.home, skin_input.hubs, skin_input.keyboard,

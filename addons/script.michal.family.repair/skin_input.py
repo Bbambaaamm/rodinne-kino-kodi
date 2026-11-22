@@ -108,7 +108,7 @@ def keyboard(original):
 
 def confirmation(original):
     """Use Kodi's real choice buttons for remote keys and full-size touch targets."""
-    marker = 'Rodinne kino: native confirmation controls'
+    marker = 'Rodinne kino: native confirmation navigation v2'
     if marker in original:
         ET.fromstring(original)
         return original
@@ -120,18 +120,40 @@ def confirmation(original):
     hidden = [node for node in dialog.findall("include[@content='Object_Hidden_Button']")
               if node.findtext("param[@name='id']") in ('10', '11', '12')]
     choices = items.findall("include[@content='Button_Dialog']")
-    if (len(hidden) != 3 or len(list(items)) != 3
-            or [node.findtext("param[@name='id']") for node in choices] != ['9011', '9010', '9012']):
+    upstream = (len(hidden) == 3 and len(list(items)) == 3
+                and [node.findtext("param[@name='id']") for node in choices] == ['9011', '9010', '9012'])
+    previous = ('Rodinne kino: native confirmation controls' in original and not hidden
+                and [node.get('id') for node in items.findall('control')] == ['11', '10', '12'])
+    panels = [node for node in dialog.iter('include')
+              if node.get('content') == 'Part_Button_Grouplist'
+              and node.findtext("param[@name='items']") == 'DialogConfirm_Items']
+    if not (upstream or previous) or len(panels) != 1:
         raise RuntimeError('Arctic Fuse confirmation buttons changed')
     for node in hidden:
         dialog.remove(node)
+    # A grouplist rewrites children's navigation when it attaches them. Keep
+    # the three native buttons in a plain group so their explicit routes are
+    # retained, including after the first skin load on Kodi 21 / Android.
+    panel = panels[0]
+    parent = next(node for node in dialog.iter() if panel in list(node))
+    position = list(parent).index(panel)
+    parent.remove(panel)
+    group = ET.Element('control', type='group', id='9000')
+    ET.SubElement(group, 'include').text = 'Size_Group_Panel_Right'
+    ET.SubElement(group, 'include').text = 'Part_Panel'
+    padded = ET.SubElement(group, 'control', type='group')
+    ET.SubElement(padded, 'include').text = 'Size_Grouplist_Pad'
+    ET.SubElement(padded, 'defaultcontrol', always='true').text = '10'
+    ET.SubElement(padded, 'include').text = 'DialogConfirm_Items'
+    parent.insert(position, group)
     items.clear()
     items.append(ET.Comment(marker))
     # Kodi sets labels, visibility, focus and click results on 10/11/12 itself.
     # Proxy buttons 9010/9011 cannot reliably retain that state across a reload.
-    for control_id, previous, following in ((11, 12, 10), (10, 11, 12), (12, 10, 11)):
+    for index, (control_id, previous, following) in enumerate(((11, 12, 10), (10, 11, 12), (12, 10, 11))):
         button = ET.SubElement(items, 'control', type='button', id=str(control_id))
-        for name, value in (('width', '100%'), ('height', '90'), ('font', 'font_main'),
+        for name, value in (('left', '0'), ('top', str(index * 110)),
+                            ('width', '100%'), ('height', '90'), ('font', 'font_main'),
                             ('align', 'center'), ('aligny', 'center'), ('textoffsetx', '12'),
                             ('textcolor', 'dialog_fg_100'), ('focusedcolor', 'FF111114')):
             ET.SubElement(button, name).text = value
