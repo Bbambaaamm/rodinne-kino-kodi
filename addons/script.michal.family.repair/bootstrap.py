@@ -146,11 +146,30 @@ def install_from_repo(addon):
         raise RuntimeError('Kodi nedokončilo instalaci ' + addon + '. Při opakování potvrď jeho instalaci v Kodi.')
 
 
+def focus_skin_confirmation():
+    """Repair an unfocused native keep dialog without choosing its result."""
+    if (xbmcgui.getCurrentWindowDialogId() != 10100
+            or not xbmc.getCondVisibility('Window.IsDialogTopmost(yesnodialog)')):
+        return False
+    focus = xbmc.getInfoLabel('System.CurrentControlID')
+    if focus not in ('', '0', '-1', '-200'):
+        return True
+    try:
+        # HasFocus(10) can already report true while the dialog has no active
+        # focused control. Set the native focus explicitly, as Kodi's settings
+        # window does when it initiates the skin preview.
+        xbmcgui.Window(10100).setFocusId(10)
+    except RuntimeError:
+        return False  # The new skin has not finished creating its controls.
+    return True
+
+
 def wait_for_skin_confirmation():
     monitor = xbmc.Monitor()
     deadline = time.monotonic() + 45
     settled_since = None
     confirmation_seen = False
+    confirmation_focused = False
     while time.monotonic() < deadline:
         confirming = xbmc.getCondVisibility('Window.IsVisible(yesnodialog)')
         confirmation_seen = confirmation_seen or confirming
@@ -159,6 +178,8 @@ def wait_for_skin_confirmation():
             break
         if xbmc.getSkinDir() == SKIN:
             dismiss_skin_wizard()
+            if confirming and not confirmation_focused:
+                confirmation_focused = focus_skin_confirmation()
             # A progress dialog can cover the still-visible keep/revert
             # dialog. Never mistake that overlay for the user's confirmation.
             settled = (confirmation_seen and not confirming and selected == SKIN

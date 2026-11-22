@@ -287,6 +287,49 @@ class BootstrapTests(unittest.TestCase):
         self.assertIn('Dialog.Close(11130,true)', commands)
         self.assertFalse(any('10100' in command or 'SendClick' in command for command in commands))
 
+    def test_empty_native_skin_dialog_gets_focus_on_no_without_approval(self):
+        self.setup.xbmcgui.getCurrentWindowDialogId = lambda: 10100
+        self.xbmc.getCondVisibility = lambda _: True
+        self.xbmc.getInfoLabel = lambda _: ''
+        window = Mock()
+        self.setup.xbmcgui.Window = Mock(return_value=window)
+        self.assertTrue(self.setup.focus_skin_confirmation())
+        self.setup.xbmcgui.Window.assert_called_once_with(10100)
+        window.setFocusId.assert_called_once_with(10)
+        self.xbmc.executebuiltin.assert_not_called()
+
+    def test_existing_user_selection_is_never_replaced(self):
+        self.setup.xbmcgui.getCurrentWindowDialogId = lambda: 10100
+        self.xbmc.getCondVisibility = lambda _: True
+        self.setup.xbmcgui.Window = Mock()
+        for focused in ('10', '11', '12', '61'):
+            with self.subTest(focused=focused):
+                self.xbmc.getInfoLabel = lambda _: focused
+                self.assertTrue(self.setup.focus_skin_confirmation())
+        self.setup.xbmcgui.Window.assert_not_called()
+
+    def test_focus_repair_waits_for_the_actual_topmost_confirmation(self):
+        self.setup.xbmcgui.Window = Mock()
+        self.setup.xbmcgui.getCurrentWindowDialogId = lambda: 10138
+        self.xbmc.getCondVisibility = lambda _: True
+        self.assertFalse(self.setup.focus_skin_confirmation())
+        self.setup.xbmcgui.getCurrentWindowDialogId = lambda: 10100
+        self.xbmc.getCondVisibility = lambda _: False
+        self.assertFalse(self.setup.focus_skin_confirmation())
+        self.setup.xbmcgui.Window.assert_not_called()
+
+    def test_focus_is_only_initialized_once_while_waiting_for_user(self):
+        clock = [0.0]
+        self.skin = self.setup.SKIN
+        self.xbmc.Monitor = lambda: types.SimpleNamespace(
+            waitForAbort=lambda seconds: clock.__setitem__(0, clock[0] + seconds) or False)
+        self.xbmc.getCondVisibility = lambda condition: condition == 'Window.IsVisible(yesnodialog)' and clock[0] < 3
+        with patch.object(self.setup, 'focus_skin_confirmation', return_value=True) as focus:
+            with patch.object(self.setup.time, 'monotonic', side_effect=lambda: clock[0]):
+                self.setup.wait_for_skin_confirmation()
+        focus.assert_called_once_with()
+        self.assertGreaterEqual(clock[0], 5)
+
 
 if __name__ == '__main__':
     unittest.main()

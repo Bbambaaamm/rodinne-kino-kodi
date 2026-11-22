@@ -6,7 +6,7 @@
 
 Pro **Kodi 21 Omega** stačí stáhnout jeden ZIP. Při prvním spuštění instalátor obstará Arctic Fuse 3 a jeho závislosti, Webshare – YAWSP, Trakt a češtinu. Poté aktivuje vzhled a připraví nabídky, vzhled karet, hledání, postupné načítání, ovládání Zpět a přehrávač podle domácí sestavy na Homaticsu. Instalace potřebuje internet.
 
-1. Stáhni [kompletní instalační ZIP Rodinného kina 1.8.12](https://raw.githubusercontent.com/Bbambaaamm/rodinne-kino-kodi/main/dist/script.michal.family.repair/script.michal.family.repair-1.8.12.zip). V Kodi dej **Doplňky → Instalovat ze souboru ZIP** a vyber stažený soubor. Pro ruční instalaci ZIP povol **Neznámé zdroje**.
+1. Stáhni [kompletní instalační ZIP Rodinného kina 1.8.13](https://raw.githubusercontent.com/Bbambaaamm/rodinne-kino-kodi/main/dist/script.michal.family.repair/script.michal.family.repair-1.8.13.zip). V Kodi dej **Doplňky → Instalovat ze souboru ZIP** a vyber stažený soubor. Pro ruční instalaci ZIP povol **Neznámé zdroje**.
 2. Otevři **Programové doplňky → Rodinné kino – instalace a servis** a potvrď instalaci. Kodi může vyžádat potvrzení instalace jednotlivých součástí a přepnutí na Arctic Fuse 3. Instalační postup uloží místní zálohu nastavení a své změny zaznamená pro obnovu. Pro aktuální závislosti vzhledu povolí aktualizace z libovolného repozitáře. Automatické dotazy Traktu na hodnocení vypne stejně jako v domácí sestavě.
 3. Instalace otevře průvodce **Dokončení Rodinného kina** s připojením Webshare, osobních seznamů Traktu a ukládání zhlédnutí. U Webshare zadej jméno a heslo, u Traktu potvrď propojení podle zobrazených pokynů. Webshare otevře dva kroky s jasnými českými popisky pro jméno nebo e-mail a pro heslo. Přihlášení se uloží až po úspěšném ověření účtu. Průvodce lze znovu otevřít v **Moje → Servis → Dokončit přihlášení účtů**. U nového TMDb Helperu instalátor doplní samostatnou integraci Trakt.
 4. V **Moje → Servis → Kontrola rodinného kina** ověř sestavu. ČSFD lze zapnout pod **Hodnocení ČSFD – Atlas** s vlastním klíčem a tarifem podporujícím ČSFD.
@@ -17,11 +17,17 @@ Instalátor rozšiřuje instalaci vzhledu z původního balíčku `michal-kodi-o
 
 Instalaci přímo z internetu přidáš přes **Nastavení → Správce souborů → Přidat zdroj** s adresou **https://bbambaaamm.github.io/rodinne-kino-kodi/** a názvem **Rodinné kino**. V **Doplňky → Instalovat ze souboru ZIP → Rodinné kino** vyber **repository.rodinne.kino-1.0.0.zip**, potom pokračuj přes **Instalovat z repozitáře → Rodinné kino → Programové doplňky**. Lze také stáhnout [samostatný ZIP repozitáře](https://bbambaaamm.github.io/rodinne-kino-kodi/repository.rodinne.kino-1.0.0.zip).
 
+## Aktivní výběr v potvrzení vzhledu 1.8.13
+
+Na Homaticsu Box R 4K Plus s Kodi 21.2 se při změně z instalátoru zobrazilo potvrzovací okno bez aktivního výběru. Stejná změna přes Nastavení měla aktivní výběr a ovladačem fungovala. Výslovné předání výběru na nativní tlačítko „Ne“ obnovilo přepínání šipkami také v zaseknutém okně.
+
+Instalátor nyní při otevření svého potvrzení ověří aktivní výběr. Chybí-li, jednou jej předá na „Ne“. Již zvolené tlačítko zachová a při překrytí jiným dialogem počká. Výsledek dál potvrzuje uživatel; Zpět ani časový limit se nepočítají jako souhlas. Ověření celého nového balíčku na zařízení zatím probíhá.
+
 ## Navigace v potvrzení vzhledu 1.8.12
 
 Tlačítka potvrzení používají samostatnou skupinu s výslovnými přechody pro všechny čtyři šipky. Původní seznam tlačítek při vytváření přepisoval svislé přechody svých potomků; nová skupina je zachovává. Aktualizuje se také dřívější úprava z 1.8.10 a 1.8.11. Potvrzení zůstává na uživateli a Zpět nebo vypršení systémové lhůty vrací původní vzhled.
 
-Na Homaticsu Box R 4K Plus s Kodi 21.2 byla chyba 1.8.11 reprodukována i síťovými šipkami. Ověření nové verze na tomto zařízení zatím probíhá.
+Na Homaticsu Box R 4K Plus s Kodi 21.2 byla chyba 1.8.11 reprodukována i síťovými šipkami. Samotná změna skupiny ve verzi 1.8.12 chybějící aktivní výběr při instalaci nevyřešila; tuto část řeší 1.8.13.
 
 ## Kompatibilita s Arctic Fuse 3.5.7 v 1.8.11
 
