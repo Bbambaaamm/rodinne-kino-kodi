@@ -21,7 +21,7 @@ Instalaci přímo z internetu přidáš přes **Nastavení → Správce souborů
 
 Čtečka vedle MKV a MP4 podporuje hlavičky RIFF/AVI. Ze skutečných dat souboru získá rozměry obrazu, běžné kodeky AVI, počet zvukových kanálů, vzorkovací frekvenci a přítomnost vložených textových nebo XSub titulkových stop. Jazyk přečte z označení jazyka nebo jednoznačného názvu stopy. Chybějící jazyk zůstává neoznačený a nepřebírá se z názvu souboru.
 
-Čtení přeskakuje výplně a nepřechází do obrazových ani zvukových snímků. Má omezenou velikost hlavičky a kontroluje délky i úplnost jednotlivých struktur. Nová verze cache stop znovu prověří soubory, které byly před touto aktualizací neověřené. Prošlo 111 automatických kontrol včetně více stop, neoznačeného jazyka, neúplných dat a přeskakování velkých výplní. Ověření na Homaticsu zatím probíhá.
+Čtení přeskakuje výplně a nepřechází do obrazových ani zvukových snímků. Má omezenou velikost hlavičky a kontroluje délky i úplnost jednotlivých struktur. Nová verze cache stop znovu prověří soubory, které byly před touto aktualizací neověřené. Prošlo 111 automatických kontrol včetně více stop, neoznačeného jazyka, neúplných dat a přeskakování velkých výplní. Na Homaticsu Box R 4K Plus s Kodi 21.2 se automaticky použila sestava 1.8.15 s doplňkem 0.9.20. U obou AVI zdrojů Prstenů moci S03E04 čtečka ověřila rozměry 1920×800, kodek AVC a zvuk AC3 se 2 kanály při 48 kHz. Z každého souboru přečetla 65 536 bajtů. V hlavičkách není označený jazyk zvukové stopy a nejsou v nich vložené titulkové stopy; nabídka zobrazuje neznámý jazyk a údaje si nevymýšlí. Video nebylo při tomto ověření přehráváno.
 
 ## Zkrácené názvy seriálů 1.8.14 / 0.9.19
 
@@ -29,7 +29,7 @@ Hledání zdrojů zachovává celé oficiální názvy a doplňuje jejich dostat
 
 Instalační balíček obsahuje filmový doplněk 0.9.19. Nová verze cache zdrojů zabrání použití dříve uloženého prázdného výsledku. Prošlo 100 automatických kontrol včetně skutečného názvu souboru S03E04, naplnění dlouhých dotazů nesouvisejícími výsledky, opakovaných souborů i zachování přesných odmítnutí.
 
-Na Homaticsu Box R 4K Plus s Kodi 21.2 se 22. listopadu 2026 automaticky použila sestava 1.8.14 s doplňkem 0.9.19. V běžné kartě „3. řada · 4. díl — Gundabad“ nabídka Jazyk a kvalita přijala 2 ze 117 různých výsledků při zachované přesné kontrole epizody. Video při ověření nebylo spuštěno. Oba nalezené soubory jsou AVI; současná čtečka hlaviček podporuje MKV a MP4, takže u těchto AVI neověří zvuk, titulky ani skutečné rozlišení. Zkratka CZ v názvu není ověřenou zvukovou stopou.
+Na Homaticsu Box R 4K Plus s Kodi 21.2 se 22. listopadu 2026 automaticky použila sestava 1.8.14 s doplňkem 0.9.19. V běžné kartě „3. řada · 4. díl — Gundabad“ nabídka Jazyk a kvalita přijala 2 ze 117 různých výsledků při zachované přesné kontrole epizody. Video při ověření nebylo spuštěno. Oba nalezené soubory jsou AVI; čtečka ve verzi 0.9.19 podporovala MKV a MP4, takže u těchto AVI ještě neověřila zvuk, titulky ani skutečné rozlišení. Zkratka CZ v názvu není ověřenou zvukovou stopou.
 
 ## Aktivní výběr v potvrzení vzhledu 1.8.13
 
