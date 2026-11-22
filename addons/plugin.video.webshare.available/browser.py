@@ -194,14 +194,17 @@ class Browser(xbmcgui.WindowXMLDialog):
                 shown=all_sources if page=='files' else (high if ultra else regular)
                 self.getControl(2).setLabel(self.episode_title(record)+'  ·  '+('Podrobnosti souborů' if page=='files' else '4K' if ultra else 'Jazyk a kvalita'))
                 for source in shown:
-                    rows.append((self.f.source_label(source),self.source_summary(source),{'kind':'file_info' if page=='files' else 'source','value':source}))
+                    rows.append((source.get('name') or 'Soubor bez názvu',self.f.source_label(source),{'kind':'file_info' if page=='files' else 'source','value':source}))
                 if page=='sources':
                     if high and not ultra:rows.append(('4K varianty ({})'.format(len(high)),'Vyšší rozlišení',{'kind':'ultra'}))
                     rows.append(('Podrobnosti zvukových stop a titulků','',{'kind':'file_details'}))
                 if frame.get('only_4k'):self.getControl(4).setLabel('Pro tento díl jsou nyní ověřené jen 4K varianty.')
             control=self.getControl(510);control.reset();items=[]
             for label,label2,action in rows:
-                items.append(xbmcgui.ListItem(label=label,label2=label2));self.row_actions.append(action)
+                item=xbmcgui.ListItem(label=label,label2=label2)
+                if action['kind'] in ('source','file_info'):
+                    item.setProperty('family.source.tracks',self.source_summary(action['value']))
+                items.append(item);self.row_actions.append(action)
             control.addItems(items);control.setVisible(True)
             if items:control.selectItem(min(max(0,frame.get('selected',0)),len(items)-1))
             else:
@@ -238,7 +241,7 @@ class Browser(xbmcgui.WindowXMLDialog):
         elif kind=='ultra':self.push('sources',sources=self.nav.current['sources'],ultra=True,resume=self.nav.current.get('resume',True))
         elif kind=='file_details':self.push('files',sources=self.nav.current['sources'])
         elif kind=='file_info':
-            source=action['value'];self.push('info',title='Zvuk a titulky',text=self.f.source_label(source)+'\n\n'+'\n\n'.join(self.f.track_lines(source)),focus=404)
+            source=action['value'];self.push('info',title='Zvuk a titulky',text=(source.get('name') or 'Soubor bez názvu')+'\n\n'+self.f.source_label(source)+'\n\n'+'\n\n'.join(self.f.track_lines(source)),focus=404)
         elif kind=='source':self.prepare(action['value'],self.nav.current.get('resume',True))
     def play(self,resume):self.load_sources(True,resume)
     def load_sources(self,auto,resume):

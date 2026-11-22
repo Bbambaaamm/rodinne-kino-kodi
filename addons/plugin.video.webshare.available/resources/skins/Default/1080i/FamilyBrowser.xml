@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <window type="dialog">
   <defaultcontrol always="true">401</defaultcontrol>
   <coordinates>
@@ -114,7 +114,46 @@
       <onright>510</onright>
       <scrolltime>180</scrolltime>
       <orientation>vertical</orientation>
-      <itemlayout width="900" height="85">
+      <itemlayout width="900" height="116" condition="String.IsEqual(Window.Property(family.view),sources) | String.IsEqual(Window.Property(family.view),files)">
+        <control type="image">
+          <left>0</left>
+          <top>0</top>
+          <width>900</width>
+          <height>112</height>
+          <texture border="16" colordiffuse="70202735">family-button.png</texture>
+        </control>
+        <control type="label">
+          <left>26</left>
+          <top>4</top>
+          <width>848</width>
+          <height>40</height>
+          <font>font_main</font>
+          <textcolor>FFE2E8F0</textcolor>
+          <label>$INFO[ListItem.Label]</label>
+          <scroll>false</scroll>
+        </control>
+        <control type="label">
+          <left>26</left>
+          <top>44</top>
+          <width>848</width>
+          <height>30</height>
+          <font>font_mini</font>
+          <textcolor>FFB6C3D4</textcolor>
+          <label>$INFO[ListItem.Label2]</label>
+          <scroll>false</scroll>
+        </control>
+        <control type="label">
+          <left>26</left>
+          <top>76</top>
+          <width>848</width>
+          <height>30</height>
+          <font>font_mini</font>
+          <textcolor>FFB6C3D4</textcolor>
+          <label>$INFO[ListItem.Property(family.source.tracks)]</label>
+          <scroll>false</scroll>
+        </control>
+      </itemlayout>
+      <itemlayout width="900" height="85" condition="!String.IsEqual(Window.Property(family.view),sources) + !String.IsEqual(Window.Property(family.view),files)">
         <control type="image">
           <left>0</left>
           <top>0</top>
@@ -143,7 +182,46 @@
           <scroll>false</scroll>
         </control>
       </itemlayout>
-      <focusedlayout width="900" height="85">
+      <focusedlayout width="900" height="116" condition="String.IsEqual(Window.Property(family.view),sources) | String.IsEqual(Window.Property(family.view),files)">
+        <control type="image">
+          <left>0</left>
+          <top>0</top>
+          <width>900</width>
+          <height>112</height>
+          <texture border="16" colordiffuse="D5294C54">family-button.png</texture>
+        </control>
+        <control type="label">
+          <left>26</left>
+          <top>4</top>
+          <width>848</width>
+          <height>40</height>
+          <font>font_main_bold</font>
+          <textcolor>FFFFFFFF</textcolor>
+          <label>$INFO[ListItem.Label]</label>
+          <scroll>true</scroll>
+        </control>
+        <control type="label">
+          <left>26</left>
+          <top>44</top>
+          <width>848</width>
+          <height>30</height>
+          <font>font_mini</font>
+          <textcolor>FFD3DFE6</textcolor>
+          <label>$INFO[ListItem.Label2]</label>
+          <scroll>false</scroll>
+        </control>
+        <control type="label">
+          <left>26</left>
+          <top>76</top>
+          <width>848</width>
+          <height>30</height>
+          <font>font_mini</font>
+          <textcolor>FFD3DFE6</textcolor>
+          <label>$INFO[ListItem.Property(family.source.tracks)]</label>
+          <scroll>true</scroll>
+        </control>
+      </focusedlayout>
+      <focusedlayout width="900" height="85" condition="!String.IsEqual(Window.Property(family.view),sources) + !String.IsEqual(Window.Property(family.view),files)">
         <control type="image">
           <left>0</left>
           <top>0</top>

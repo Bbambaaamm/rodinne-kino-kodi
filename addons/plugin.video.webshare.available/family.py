@@ -573,7 +573,7 @@ def source_choice(sources, heading, ultra=None):
     while True:
         rows=[]
         for candidate in sources:
-            rows.append(xbmcgui.ListItem(label=source_label(candidate),label2=source_summary(candidate)))
+            rows.append(xbmcgui.ListItem(label=candidate.get('name') or 'Soubor bez názvu',label2=source_label(candidate)+'  •  '+source_summary(candidate)))
         if ultra:
             rows.append(xbmcgui.ListItem(label='4K – zobrazit další kvality ({})'.format(len(ultra))))
         details=len(rows)
