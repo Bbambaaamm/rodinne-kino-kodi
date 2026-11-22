@@ -21,7 +21,9 @@ Instalaci přímo z internetu přidáš přes **Nastavení → Správce souborů
 
 Hledání zdrojů zachovává celé oficiální názvy a doplňuje jejich dostatečně výraznou část za dvojtečkou, například „Prsteny moci“ a „The Rings of Power“. Tyto české a původní krátké názvy dostanou místo mezi nejvýše čtyřmi dotazy před dalšími překlady. Jednoslovné, obecné a číslované části názvu se automaticky nepřidávají. Kontrola celého názvu a přesné řady i dílu zůstává zachovaná; ukázky, nesouvisející seriály a soubory obsahující více dílů se dál odmítají.
 
-Instalační balíček obsahuje filmový doplněk 0.9.19. Nová verze cache zdrojů zabrání použití dříve uloženého prázdného výsledku. Automatické kontroly pokrývají skutečný název souboru S03E04, naplnění dlouhých dotazů nesouvisejícími výsledky, opakované soubory i zachování přesných odmítnutí. Ověření na Homaticsu zatím probíhá.
+Instalační balíček obsahuje filmový doplněk 0.9.19. Nová verze cache zdrojů zabrání použití dříve uloženého prázdného výsledku. Prošlo 100 automatických kontrol včetně skutečného názvu souboru S03E04, naplnění dlouhých dotazů nesouvisejícími výsledky, opakovaných souborů i zachování přesných odmítnutí.
+
+Na Homaticsu Box R 4K Plus s Kodi 21.2 se 22. listopadu 2026 automaticky použila sestava 1.8.14 s doplňkem 0.9.19. V běžné kartě „3. řada · 4. díl — Gundabad“ nabídka Jazyk a kvalita přijala 2 ze 117 různých výsledků při zachované přesné kontrole epizody. Video při ověření nebylo spuštěno. Oba nalezené soubory jsou AVI; současná čtečka hlaviček podporuje MKV a MP4, takže u těchto AVI neověří zvuk, titulky ani skutečné rozlišení. Zkratka CZ v názvu není ověřenou zvukovou stopou.
 
 ## Aktivní výběr v potvrzení vzhledu 1.8.13
 
