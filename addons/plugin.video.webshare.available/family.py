@@ -529,7 +529,7 @@ def inspect_sources(sources, cancel, progress):
         while not cancel.is_set() and time.monotonic()<deadline:
             try:index,candidate=jobs.get_nowait()
             except queue.Empty:return
-            key='family_tracks_v1_'+hashlib.sha256((candidate['ident']+':'+str(candidate.get('size'))).encode()).hexdigest()
+            key='family_tracks_v2_'+hashlib.sha256((candidate['ident']+':'+str(candidate.get('size'))).encode()).hexdigest()
             metadata=core.read_cache_entry('meta',key,7*86400)
             if metadata and metadata.get('state')!='verified' and time.time()-metadata.get('checked_at',0)>300:
                 metadata=None

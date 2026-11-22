@@ -171,6 +171,8 @@ def language_order(code):
     return ({'CZ':0,'SK':1,'EN':2,'?':9}.get(code,3),code)
 
 def codec_label(value):
+    if value == 'V_MPEG4/ISO/ASP':
+        return 'MPEG-4'
     return {'A_EAC3':'E-AC3','A_AC3':'AC3','A_AAC':'AAC','A_OPUS':'OPUS','A_DTS':'DTS','A_FLAC':'FLAC','A_VORBIS':'VORBIS','A_MPEG/L3':'MP3','mp4a':'MP4A','ac-3':'AC3','ec-3':'E-AC3','V_MPEGH/ISO/HEVC':'HEVC','V_MPEG4/ISO/AVC':'H.264','S_TEXT/UTF8':'SRT','S_TEXT/ASS':'ASS','S_TEXT/SSA':'SSA','S_HDMV/PGS':'PGS'}.get(value,value[2:] if value.startswith('A_') else value)
 
 def source_summary(candidate):
@@ -212,6 +214,10 @@ def source_attributes(candidate):
         data.update(resolution=resolution,quality='{}×{}'.format(width,height))
     codec = video.get('codec','').lower()
     data['codec'] = 'HEVC' if any(x in codec for x in ('hevc','hvc1','hev1')) else 'AVC' if any(x in codec for x in ('avc','avc1')) else 'AV1' if 'av1' in codec else ''
+    if codec in ('v_mpeg4/iso/asp', 'xvid', 'divx', 'dx50', 'fmp4', 'mp4v'):
+        data['codec'] = 'MPEG-4'
+    elif codec in ('mjpg', 'mjpeg'):
+        data['codec'] = 'MJPEG'
     return data
 
 def track_lines(candidate):
