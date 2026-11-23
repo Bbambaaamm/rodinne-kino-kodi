@@ -268,4 +268,3 @@ class Pager:
             try:result=p.ensure(f,value,target,cancel);self.results.put((key,target,rev,True,result))
             except Exception as exc:self.results.put((key,target,rev,False,type(exc).__name__))
         threading.Thread(target=run,daemon=True).start()
-
