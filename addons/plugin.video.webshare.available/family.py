@@ -364,9 +364,9 @@ def render_list(kind, source, personal=False):
                        'account', url('accounts'), command=command)
             xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
             return
-        try:count = int(PARAMS.get('count') or paging.BATCH)
-        except ValueError:count = paging.BATCH
-        count = min(paging.MAX_ITEMS, max(count, paging.requested(family, value)))
+        # The Home property is the single source of truth.  In particular, it
+        # lets paging migrate stale pre-batch values before any network work.
+        count = paging.requested(family, value)
         key = paging.key(value)
         heartbeat=HOME.getProperty('Family.Service.Heartbeat')
         background=paging.display_list(value) and heartbeat and time.time()-float(heartbeat)<10
@@ -806,3 +806,4 @@ def route():
         state_item('Hledat', 'Film nebo seriál', 'action', url('search'))
         state_item('Servis', 'Kontrola sestavy a zálohy', 'action', url('service'))
         xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
+
