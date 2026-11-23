@@ -13,6 +13,8 @@ BATCH=20
 MAX_ITEMS=10000
 TTL=600
 DISPLAY_TTL=86400
+COUNT_SCHEMA='batch20-v1'
+REQUEST_BUDGET=1.0
 HOME_LISTS=(('movie','playback'),('episode','playback'),('episode','next'),
             ('movie','recommendations'),('tv','recommendations'))
 MOVIES={'playback','recommendations','watchlist','trending','popular','now_playing','top_rated','upcoming'}
@@ -39,11 +41,17 @@ def from_key(value):
     if len(parts)!=3 or parts[0] not in ('personal','list'):raise ValueError('Unsupported household key')
     return route(parts[1],parts[2],parts[0]=='personal')
 def count_property(value):return 'Family.Paging.Count.'+key(value)
+def count_schema_property(value):return 'Family.Paging.CountSchema.'+key(value)
 def display_list(value):return not value['personal'] and (value['kind'],value['source']) in HOME_LISTS
 def display_property(value,field):return 'Family.Paging.Display.'+field+'.'+key(value)
 def revision(f,value):return f.HOME.getProperty('Family.Paging.Revision') if value['source'] in ('playback','next','history') else ''
 def cache_key(f,value,epoch=None):return 'v2_'+key(value)+'_'+hashlib.sha1((revision(f,value) if epoch is None else epoch).encode()).hexdigest()[:12]
 def requested(f,value):
+    schema=count_schema_property(value)
+    if f.HOME.getProperty(schema)!=COUNT_SCHEMA:
+        f.HOME.setProperty(count_property(value),str(BATCH))
+        f.HOME.setProperty(schema,COUNT_SCHEMA)
+        return BATCH
     try:amount=int(f.HOME.getProperty(count_property(value)) or BATCH)
     except ValueError:amount=BATCH
     return max(BATCH,min(MAX_ITEMS,amount))
@@ -254,7 +262,7 @@ def ensure(f,value,count=None,cancel=None):
     with lock(f,value,cancel,epoch):
         state=read(f,value,epoch) or initial()
         token=f.core.get_webshare_token() if needs_availability(value) else None
-        local=f.local_progress() if value['source'] in ('playback','next') else {};scanned=0;deadline=time.monotonic()+25
+        local=f.local_progress() if value['source'] in ('playback','next') else {};scanned=0;deadline=time.monotonic()+REQUEST_BUDGET
         while len(state['records'])<count and scanned<64 and time.monotonic()<deadline:
             if cancel and cancel.is_set():break
             if not state['pending']:
@@ -274,3 +282,4 @@ def ensure(f,value,count=None,cancel=None):
         if display_list(value) and epoch==revision(f,value):
             f.core.write_cache_entry('paging-display','v2_'+key(value),state)
         return view(state,count)
+
