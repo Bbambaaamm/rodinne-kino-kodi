@@ -17,8 +17,8 @@ Každá změna musí před sloučením projít kontrolou **Quality Gates** v Git
 | Pohyb výběru ovladačem | 100 ms | 200 ms |
 | Zpět a obnovení výběru | 300 ms | 700 ms |
 | Již načtená sekce | 0,5 s | 1 s |
-| Prvních 20 titulů ze sítě | 3 s | 6 s |
-| Dalších 20 titulů | 2 s | 4 s |
+| První použitelné karty ze sítě (milník 20) | 3 s | 6 s |
+| První nové karty další dávky (milník +20) | 2 s | 4 s |
 | Hledání | 3 s | 6 s |
 | Karta z cache / ze sítě | 0,5 s / 1,5 s | 1 s / 3 s |
 | Nabídka zdrojů | 3 s | 6 s |
@@ -26,6 +26,8 @@ Každá změna musí před sloučením projít kontrolou **Quality Gates** v Git
 | Viditelná odezva na delší práci | 100 ms | 200 ms |
 
 Překročení cíle je varování a požaduje kontrolu trendu. Překročení nepřijatelné meze blokuje vydání.
+Milník určuje výsledný počet karet. Při pomalejším Webshare se pouze potvrzené karty
+zobrazují postupně v krátkých dávkách, takže uživatel nečeká na dokončení celé dvacítky.
 
 ## Co kontroluje GitHub
 
@@ -39,3 +41,4 @@ Překročení cíle je varování a požaduje kontrolu trendu. Překročení nep
 GitHub-hostovaný běh nemá přístup do domácí sítě. Skutečné síťové latence, ovladač, návrat, obraz a zvuk proto měří Homatics před vydáním. Výsledek se uloží do `quality/device-latest.json`; kontrola odmítne protokol patřící k jiné verzi souborů.
 
 Pro úplné vynucení nastav v GitHubu pravidlo větve `main` a jako povinné kontroly zvol `Functional tests` a `Quality contract`.
+
