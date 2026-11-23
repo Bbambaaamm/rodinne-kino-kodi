@@ -6,18 +6,18 @@
 
 Pro **Kodi 21 Omega** stačí stáhnout jeden ZIP. Při prvním spuštění instalátor obstará Arctic Fuse 3 a jeho závislosti, Webshare – YAWSP, Trakt a češtinu. Poté aktivuje vzhled a připraví nabídky, vzhled karet, hledání, postupné načítání, ovládání Zpět a přehrávač podle domácí sestavy na Homaticsu. Instalace potřebuje internet.
 
-1. Stáhni [kompletní instalační ZIP Rodinného kina 1.8.17](https://raw.githubusercontent.com/Bbambaaamm/rodinne-kino-kodi/main/dist/script.michal.family.repair/script.michal.family.repair-1.8.17.zip). V Kodi dej **Doplňky → Instalovat ze souboru ZIP** a vyber stažený soubor. Pro ruční instalaci ZIP povol **Neznámé zdroje**.
+1. Stáhni [kompletní instalační ZIP Rodinného kina 1.8.18](https://raw.githubusercontent.com/Bbambaaamm/rodinne-kino-kodi/main/dist/script.michal.family.repair/script.michal.family.repair-1.8.18.zip). V Kodi dej **Doplňky → Instalovat ze souboru ZIP** a vyber stažený soubor. Pro ruční instalaci ZIP povol **Neznámé zdroje**.
 2. Otevři **Programové doplňky → Rodinné kino – instalace a servis** a potvrď instalaci. Kodi může vyžádat potvrzení instalace jednotlivých součástí a přepnutí na Arctic Fuse 3. Instalační postup uloží místní zálohu nastavení a své změny zaznamená pro obnovu. Pro aktuální závislosti vzhledu povolí aktualizace z libovolného repozitáře. Automatické dotazy Traktu na hodnocení vypne stejně jako v domácí sestavě.
 3. Instalace otevře průvodce **Dokončení Rodinného kina** s připojením Webshare, osobních seznamů Traktu a ukládání zhlédnutí. U Webshare zadej jméno a heslo, u Traktu potvrď propojení podle zobrazených pokynů. Webshare otevře dva kroky s jasnými českými popisky pro jméno nebo e-mail a pro heslo. Přihlášení se uloží až po úspěšném ověření účtu. Průvodce lze znovu otevřít v **Moje → Servis → Dokončit přihlášení účtů**. U nového TMDb Helperu instalátor doplní samostatnou integraci Trakt.
 4. V **Moje → Servis → Kontrola rodinného kina** ověř sestavu. ČSFD lze zapnout pod **Hodnocení ČSFD – Atlas** s vlastním klíčem a tarifem podporujícím ČSFD.
 
 Na sestavě s vlastními úpravami Arctic Fuse 3 nejdřív uvolni vlastní nabídku na pozici 4, kterou použijí Streamovací služby. Při přerušeném stahování nebo odmítnutí systémového potvrzení lze instalátor znovu spustit. Již připravené součásti zkontroluje a pokračuje. Obnovu původního nastavení najdeš ve stejném servisním menu.
 
-Instalátor rozšiřuje instalaci vzhledu z původního balíčku `michal-kodi-one-click-setup-1.0.2.zip` o aktuální Rodinné kino. Přibalený filmový doplněk má verzi **0.9.22**. Součásti třetích stran získává z [repozitáře autora Arctic Fuse](https://github.com/jurialmunkey/repository.jurialmunkey), [oficiálního repozitáře Kodi](https://kodi.tv/addons/omega/) a [zdroje Webshare – YAWSP](https://github.com/Webshare/Web). U přímo stahovaných ZIPů kontroluje otisk SHA-256. Instalační ZIP obsahuje i vlastní repozitář pro další aktualizace a přidá ho při první instalaci.
+Instalátor rozšiřuje instalaci vzhledu z původního balíčku `michal-kodi-one-click-setup-1.0.2.zip` o aktuální Rodinné kino. Přibalený filmový doplněk má verzi **0.9.23**. Součásti třetích stran získává z [repozitáře autora Arctic Fuse](https://github.com/jurialmunkey/repository.jurialmunkey), [oficiálního repozitáře Kodi](https://kodi.tv/addons/omega/) a [zdroje Webshare – YAWSP](https://github.com/Webshare/Web). U přímo stahovaných ZIPů kontroluje otisk SHA-256. Instalační ZIP obsahuje i vlastní repozitář pro další aktualizace a přidá ho při první instalaci.
 
 Instalaci přímo z internetu přidáš přes **Nastavení → Správce souborů → Přidat zdroj** s adresou **https://bbambaaamm.github.io/rodinne-kino-kodi/** a názvem **Rodinné kino**. V **Doplňky → Instalovat ze souboru ZIP → Rodinné kino** vyber **repository.rodinne.kino-1.0.0.zip**, potom pokračuj přes **Instalovat z repozitáře → Rodinné kino → Programové doplňky**. Lze také stáhnout [samostatný ZIP repozitáře](https://bbambaaamm.github.io/rodinne-kino-kodi/repository.rodinne.kino-1.0.0.zip).
 
-## Kompatibilní přehrávání 1.8.17 / 0.9.22
+## Kompatibilní přehrávání a rychlé seznamy 1.8.18 / 0.9.23
 
 Na Androidu přidává nabídka po stisku Zpět volbu **Kompatibilní přehrávání**. Jde o výslovně zvolený režim pro právě přehrávané video; neobsahuje pravidla podle názvu, titulu ani identifikátoru zdroje. Kodi video skutečně ukončí a znovu otevře softwarovým dekodérem, obnoví zachycený čas, zvolenou zvukovou a titulkovou stopu, zapnutí titulků a stav pauzy. Pokud již video používá softwarový dekodér, zbytečně jej nerestartuje.
 
@@ -25,7 +25,7 @@ Původní nastavení obou cest MediaCodec se uloží před změnou do místního
 
 Před schválením vydání prošlo 138 automatických kontrol. Na Homaticsu Box R 4K Plus s Kodi 21.2 prošlo závěrečné opakování šesti průchodů pěti různých testovacích souborů: AVI H.264 720p24 a MPEG-4 720p25, MKV H.264 1080p24 a HEVC 720p24 a MP4 H.264 1080p30 v přehrávání i pauze. Skutečné přepnutí trvalo 4,37–5,23 s, odchylka při kontrole obnovené pozice byla nejvýše 0,20 s. Zachovaly se zvukové stopy, zapnuté i vypnuté titulky, pauza a původní nastavení. Na stejném zařízení prošlo zrušení přes nativní Zpět, Stop během změny a obnova po simulovaném přerušení a skutečném restartu služby.
 
-Uživatel během zkoušek potvrdil obraz a synchronní zvuk původního problematického AVI i testovacích AVI, MKV a MP4. Softwarové 4K/HDR a úplný restart aplikace Kodi nebo Androidu ověřené nejsou. Vydání 1.8.17 uživatel výslovně schválil; ověření automatické aktualizace z veřejného repozitáře na Homaticsu ještě probíhá.
+Uživatel během zkoušek potvrdil obraz a synchronní zvuk původního problematického AVI i testovacích AVI, MKV a MP4. Verze 1.8.18 navíc sjednocuje filtrování dostupnosti na Webshare, stránkování po 20, průběžné zobrazování ověřených karet a měřitelné limity odezvy. Veřejné vydání následuje až po úspěšné aktualizaci a přehrávací zkoušce na Homaticsu.
 
 ## Název souboru nad údaji o zdroji 1.8.16 / 0.9.21
 
