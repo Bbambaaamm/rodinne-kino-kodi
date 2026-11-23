@@ -54,8 +54,9 @@ def invalidate_lists():
     for kind, source in HOME_LISTS:
         base = 'Family.Paging.Display.'
         key = 'list_' + kind + '_' + source
+        m.HOME.setProperty('Family.Paging.Count.' + key, '20')
         m.HOME.clearProperty(base + 'Error.' + key)
-        m.HOME.setProperty(base + 'Wanted.' + key, '10')
+        m.HOME.setProperty(base + 'Wanted.' + key, '20')
         m.HOME.setProperty(base + 'Version.' + key, stamp)
 
 

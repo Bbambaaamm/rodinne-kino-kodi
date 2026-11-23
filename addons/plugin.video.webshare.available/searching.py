@@ -59,9 +59,30 @@ def rank(rows, spec, person=False):
     return result
 
 
+def available(core, rows, cancel=None):
+    """Keep people plus only media with a confirmed Webshare video."""
+    stopped=lambda:cancel is not None and cancel.is_set()
+    token=core.get_webshare_token()
+    media=[]
+    for index,row in enumerate(rows):
+        if row.get('media_type') not in ('movie','tv'):
+            continue
+        media.append((index, row, {'kind':row['media_type'],'tmdb_id':row['id'],
+                                  'title':title(row),'year':int(year(row) or 0)}))
+    statuses={}
+    with ThreadPoolExecutor(max_workers=min(4,max(1,len(media)))) as pool:
+        futures=[(index,pool.submit(core.check_availability,item['kind'],item,token)) for index,_,item in media]
+        for index,future in futures:
+            if stopped():break
+            try:statuses[index]=future.result().get('state')=='AVAILABLE'
+            except Exception:statuses[index]=False
+    return [row for index,row in enumerate(rows)
+            if row.get('media_type')=='person' or statuses.get(index,False)]
+
+
 def fetch(core,query,kind='all',page=1,person_id=0,cancel=None):
     spec=parse(query,kind);page=max(1,int(page));person_id=int(person_id or 0)
-    key=core.hashed_name(repr(('v4',spec,page,person_id)))
+    key=core.hashed_name(repr(('v5-webshare',spec,page,person_id)))
     cached=core.read_cache_entry('search',key,600)
     if cached is not None:return cached
     def stopped():return cancel is not None and cancel.is_set()
@@ -101,6 +122,7 @@ def fetch(core,query,kind='all',page=1,person_id=0,cancel=None):
             alternative=max(words,key=len) if len(words)>1 else spec['text'][:max(3,len(spec['text'])-2)]
             if alternative!=spec['text']:
                 raw,_=lookup(alternative);rows=rank(raw,spec);similar=bool(rows);more=False
+    rows=available(core,rows,cancel)
     result={'rows':rows,'more':more,'next':next_page,'similar':similar,'spec':spec}
     if not stopped():core.write_cache_entry('search',key,result)
     return result

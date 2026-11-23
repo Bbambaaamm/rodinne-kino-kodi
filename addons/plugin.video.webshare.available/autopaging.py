@@ -1,4 +1,4 @@
-"""Prefetch the next ten, then refresh the same native carousel by URL."""
+"""Prefetch the next twenty, then refresh the same native carousel by URL."""
 import json,queue,threading,time
 import paging as p
 import streaming

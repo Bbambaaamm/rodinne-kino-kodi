@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "paging": {
+    "initial_items": 20,
+    "increment_items": 20,
+    "max_parallel_requests": 4
+  },
+  "latency": {
+    "remote_focus_ms": {"target": 100, "maximum": 200},
+    "back_restore_ms": {"target": 300, "maximum": 700},
+    "cached_section_s": {"target": 0.5, "maximum": 1.0},
+    "cold_first_page_s": {"target": 3.0, "maximum": 6.0},
+    "next_page_s": {"target": 2.0, "maximum": 4.0},
+    "search_s": {"target": 3.0, "maximum": 6.0},
+    "cached_card_s": {"target": 0.5, "maximum": 1.0},
+    "cold_card_s": {"target": 1.5, "maximum": 3.0},
+    "sources_s": {"target": 3.0, "maximum": 6.0},
+    "playback_start_s": {"target": 5.0, "maximum": 10.0},
+    "busy_feedback_ms": {"target": 100, "maximum": 200}
+  },
+  "zero_tolerance": [
+    "crash",
+    "freeze",
+    "wrong_back_target",
+    "lost_selection",
+    "unverified_webshare_card",
+    "wrong_movie_year",
+    "wrong_season_or_episode"
+  ],
+  "release": {
+    "minimum_unit_tests": 143,
+    "previous_versions_kept": 3,
+    "explicit_user_approval_required": true,
+    "device_evidence_required": true
+  }
+}

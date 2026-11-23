@@ -973,8 +973,57 @@ def best_candidate(candidates, scorer, *args):
 
 def availability_key(kind, item):
     if kind == "episode":
-        return "episode:{}:{}:{}".format(item.get("tmdb_id"), item.get("season"), item.get("episode"))
-    return "{}:{}".format(kind, item.get("tmdb_id") or "{}:{}".format(item.get("title"), item.get("year")))
+        return "strict-v2:episode:{}:{}:{}".format(item.get("tmdb_id"), item.get("season"), item.get("episode"))
+    return "strict-v2:{}:{}".format(kind, item.get("tmdb_id") or "{}:{}".format(item.get("title"), item.get("year")))
+
+
+def strict_availability(kind, item, token):
+    """Confirm at least one exact Webshare video for a catalogue card."""
+    from matching import BAD, VIDEO, episode_source_titles, markers, normal, title_matches, valid_source
+
+    meta = fetch_meta(kind, item)
+    if kind == "episode":
+        season = int(item.get("season") or 0)
+        episode = int(item.get("episode") or 0)
+        full = list(dict.fromkeys(v for v in [meta.get("show_title"), meta.get("original_show_title")]
+                                             + (meta.get("show_titles") or []) + [item.get("show_title")] if v))
+        aliases, planned = episode_source_titles(full)
+        full_keys = {normal(value) for value in full}
+        short = [value for value in planned if normal(value) not in full_keys]
+        preferred = list(dict.fromkeys(short + [item.get("show_title") or ""] + planned))[:4]
+        code = "S{:02d}E{:02d}".format(season, episode)
+        predicate = lambda candidate: valid_source(candidate, aliases, "episode", 0, season, episode)
+        queries = ["{} {}".format(title, code).strip() for title in preferred if title]
+    else:
+        year = int(meta.get("year") or item.get("year") or 0)
+        aliases = list(dict.fromkeys(v for v in [meta.get("title"), meta.get("original_title")]
+                                             + (meta.get("titles") or []) + [item.get("title")] if v))
+        if kind == "tv":
+            aliases, planned = episode_source_titles(aliases)
+            full_keys = {normal(value) for value in aliases[:len(meta.get("titles") or aliases)]}
+            short = [value for value in planned if normal(value) not in full_keys]
+            preferred = list(dict.fromkeys(short + [item.get("title") or ""] + planned))[:4]
+            predicate = lambda candidate: (
+                bool(candidate.get("ident")) and (candidate.get("name") or "").lower().endswith(VIDEO)
+                and not BAD.search(candidate.get("name") or "") and bool(markers(candidate.get("name") or ""))
+                and title_matches(candidate.get("name") or "", aliases, "episode", year))
+            queries = [title for title in preferred if title]
+        else:
+            predicate = lambda candidate: valid_source(candidate, aliases, "movie", year)
+            queries = ["{} {}".format(title, year).strip() for title in aliases[:4] if title]
+
+    seen = set()
+    for query in queries:
+        for candidate in webshare_search(query, token, limit=100):
+            ident = candidate.get("ident")
+            if not ident or ident in seen:
+                continue
+            seen.add(ident)
+            if predicate(candidate):
+                return {"state": "AVAILABLE", "score": 100, "candidate": candidate,
+                        "reasons": ["strict-title", "exact-media"]}
+    return {"state": "NOT_AVAILABLE", "score": 0, "candidate": {},
+            "reasons": ["strict-no-match"]}
 
 def check_availability(kind, item, token, force=False):
     key = availability_key(kind, item)
@@ -982,6 +1031,11 @@ def check_availability(kind, item, token, force=False):
         cached = read_availability(key)
         if cached is not None:
             return cached
+
+    if kind in ("movie", "tv", "episode"):
+        result = strict_availability(kind, item, token)
+        write_availability(key, result)
+        return result
 
     if kind == "movie":
         title = item.get("title") or ""

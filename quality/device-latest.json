@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "candidate": "availability-private-20261123",
+  "device": "Homatics Box R 4K Plus / Kodi 21.2",
+  "result": "pass",
+  "paging": {"initial_items": 20, "increment_items": 20},
+  "source_sha256": {
+    "addons/plugin.video.webshare.available/core.py": "59657030cc6a2d1d406234e23a43ede2c3aca2830406eee0d994e62ef48387ea",
+    "addons/plugin.video.webshare.available/paging.py": "d3fbb502a224c22fd2615ae1379fde114c2a79bc1564fd3fdcadf6623d1fb2b3",
+    "addons/plugin.video.webshare.available/searching.py": "482c51ec3faa362a394d51c96b3cae3182dd03042562e76a47f79555ceb35431",
+    "addons/plugin.video.webshare.available/discovery.py": "d28a40e22e8be23b4c7faf45dcb960a36997198ed19784af8fca0a92066c152e",
+    "addons/plugin.video.webshare.available/family.py": "930a2966e8548bd6612777d51811a763b7e11052e040a917d3cdf717d2b4f3fc",
+    "addons/plugin.video.webshare.available/tracking.py": "c4610bf7d3a4f94303044de625a6eb16fc6a4c7d6d1b087de94a80f550292246"
+  },
+  "measured": {
+    "cached_section_s": 0.726,
+    "cold_first_page_s": 5.898,
+    "next_page_s": 1.95,
+    "search_s": 3.908
+  },
+  "assertions": {
+    "all_sections_filter_webshare": true,
+    "exact_movie_year": true,
+    "exact_season_episode": true,
+    "mash_s01e10_visible": true,
+    "rings_of_power_s03e04_visible": true,
+    "back_selection_preserved": true,
+    "no_crash_or_freeze": true
+  },
+  "notes": "Technický protokol bez účtů, tokenů a adres videí. Před veřejným vydáním se obnoví na finálním kandidátu."
+}
