@@ -282,4 +282,3 @@ def ensure(f,value,count=None,cancel=None):
         if display_list(value) and epoch==revision(f,value):
             f.core.write_cache_entry('paging-display','v2_'+key(value),state)
         return view(state,count)
-
