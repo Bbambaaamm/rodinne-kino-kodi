@@ -806,4 +806,3 @@ def route():
         state_item('Hledat', 'Film nebo seriál', 'action', url('search'))
         state_item('Servis', 'Kontrola sestavy a zálohy', 'action', url('service'))
         xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
-
