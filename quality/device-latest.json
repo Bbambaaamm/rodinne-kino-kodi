@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "candidate": "availability-progressive-private-20261123",
+  "device": "Homatics Box R 4K Plus / Kodi 21.2",
+  "result": "pass",
+  "paging": {"initial_items": 20, "increment_items": 20},
+  "source_sha256": {
+    "addons/plugin.video.webshare.available/core.py": "59657030cc6a2d1d406234e23a43ede2c3aca2830406eee0d994e62ef48387ea",
+    "addons/plugin.video.webshare.available/paging.py": "db0567cc9d20d1d155585301404bd963e30b9cf1c4a4bee90ee301bba0645458",
+    "addons/plugin.video.webshare.available/autopaging.py": "3d5e1716af7cd0aa57fd601fffd5d4987afadbc8221255a39b0c2d3c5faf0356",
+    "addons/plugin.video.webshare.available/searching.py": "482c51ec3faa362a394d51c96b3cae3182dd03042562e76a47f79555ceb35431",
+    "addons/plugin.video.webshare.available/discovery.py": "d28a40e22e8be23b4c7faf45dcb960a36997198ed19784af8fca0a92066c152e",
+    "addons/plugin.video.webshare.available/family.py": "d3541007d112dde07d18f37d561a800722bf20fadc6d7544ce8889b9f67f6111",
+    "addons/plugin.video.webshare.available/tracking.py": "c4610bf7d3a4f94303044de625a6eb16fc6a4c7d6d1b087de94a80f550292246"
+  },
+  "measured": {
+    "remote_focus_ms": 63.0,
+    "back_restore_ms": 93.4,
+    "cached_section_s": 0.549,
+    "cold_first_page_s": 1.768,
+    "next_page_s": 2.118,
+    "search_s": 2.307,
+    "cached_card_s": 0.890,
+    "cold_card_s": 1.326,
+    "sources_s": 3.565,
+    "playback_start_s": 2.043,
+    "busy_feedback_ms": 30.4
+  },
+  "observed": {
+    "cold_first_verified_cards": 7,
+    "next_pass_new_verified_cards": 2,
+    "search_media_items": 7,
+    "search_people": 3,
+    "streaming_services": 7
+  },
+  "assertions": {
+    "all_sections_filter_webshare": true,
+    "exact_movie_year": true,
+    "exact_season_episode": true,
+    "mash_s01e10_visible": true,
+    "rings_of_power_s03e04_visible": true,
+    "back_selection_preserved": true,
+    "playback_started_and_stopped": true,
+    "no_crash_or_freeze": true
+  },
+  "notes": "Technický protokol bez účtů, tokenů a adres videí. Milníky zůstávají 20 a +20; potvrzené karty se při pomalejším Webshare zobrazují průběžně v krátkých dávkách. Kodi bylo před každou skupinou měření probuzeno simulací šipky; aktivní spořič se nehodnotí jako pád. Nabídka zdrojů: první načtení 3,565 s, opakované načtení 0,129 s. Veřejné vydání vyžaduje výslovné schválení."
+}

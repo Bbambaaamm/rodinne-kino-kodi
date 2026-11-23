@@ -9,10 +9,12 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import parse_qs,urlsplit,urlencode,quote
 
-BATCH=10
+BATCH=20
 MAX_ITEMS=10000
 TTL=600
 DISPLAY_TTL=86400
+COUNT_SCHEMA='batch20-v1'
+REQUEST_BUDGET=1.0
 HOME_LISTS=(('movie','playback'),('episode','playback'),('episode','next'),
             ('movie','recommendations'),('tv','recommendations'))
 MOVIES={'playback','recommendations','watchlist','trending','popular','now_playing','top_rated','upcoming'}
@@ -39,11 +41,17 @@ def from_key(value):
     if len(parts)!=3 or parts[0] not in ('personal','list'):raise ValueError('Unsupported household key')
     return route(parts[1],parts[2],parts[0]=='personal')
 def count_property(value):return 'Family.Paging.Count.'+key(value)
+def count_schema_property(value):return 'Family.Paging.CountSchema.'+key(value)
 def display_list(value):return not value['personal'] and (value['kind'],value['source']) in HOME_LISTS
 def display_property(value,field):return 'Family.Paging.Display.'+field+'.'+key(value)
 def revision(f,value):return f.HOME.getProperty('Family.Paging.Revision') if value['source'] in ('playback','next','history') else ''
-def cache_key(f,value,epoch=None):return 'v1_'+key(value)+'_'+hashlib.sha1((revision(f,value) if epoch is None else epoch).encode()).hexdigest()[:12]
+def cache_key(f,value,epoch=None):return 'v2_'+key(value)+'_'+hashlib.sha1((revision(f,value) if epoch is None else epoch).encode()).hexdigest()[:12]
 def requested(f,value):
+    schema=count_schema_property(value)
+    if f.HOME.getProperty(schema)!=COUNT_SCHEMA:
+        f.HOME.setProperty(count_property(value),str(BATCH))
+        f.HOME.setProperty(schema,COUNT_SCHEMA)
+        return BATCH
     try:amount=int(f.HOME.getProperty(count_property(value)) or BATCH)
     except ValueError:amount=BATCH
     return max(BATCH,min(MAX_ITEMS,amount))
@@ -81,18 +89,22 @@ def read(f,value,epoch=None):return f.core.read_cache_entry('paging',cache_key(f
 def usable(state,count):
     return state and (len(state['records'])>=count or state['source_done'] and not state['pending'])
 
+def recently_completed(saved, now=None):
+    return bool(saved and saved.get('completed')
+                and (time.time() if now is None else now)-float(saved.get('updated') or 0)<600)
+
 def display(f,value,count):
     current=read(f,value)
     if usable(current,count):
         return view(current,count)
     f.HOME.setProperty(display_property(value,'Wanted'),str(count))
     previous=(current or f.core.read_cache_entry('paging',cache_key(f,value),DISPLAY_TTL)
-              or f.core.read_cache_entry('paging-display',key(value),DISPLAY_TTL))
+              or f.core.read_cache_entry('paging-display','v2_'+key(value),DISPLAY_TTL))
     if previous is None:
         return None
     data=view(previous,count)
     if value['source'] in ('playback','next'):
-        completed={key for key,record in f.local_progress().items() if record.get('completed')}
+        completed={key for key,record in f.local_progress().items() if recently_completed(record)}
         data['records']=[record for record in data['records'] if identity(f,record['item']) not in completed]
     return data if data['records'] else None
 
@@ -130,8 +142,9 @@ def lock(f,value,cancel,epoch=None):
 
 def identity(f,item):return f.media_key(item['kind'],item['tmdb_id'],item.get('season'),item.get('episode'))
 def needs_availability(value):
-    return (not value['personal'] and not value['source'].startswith(('genre_', 'provider_'))
-            and value['source'] not in ('upcoming','on_the_air'))
+    # Every visible content list is Webshare-backed. Fail closed instead of
+    # presenting a card that cannot be opened later.
+    return True
 
 def initial():return {'records':[],'pending':[],'page':1,'source_done':False,'seen':[],'signatures':[],'local_added':False}
 
@@ -223,7 +236,11 @@ def process(f,value,item,seen,token,local):
     if not item or not item.get('tmdb_id'):return None,None
     ident=identity(f,item)
     if ident in seen:return ident,None
-    if value['source'] in ('playback','next') and (local.get(ident) or {}).get('completed'):return ident,None
+    if value['source'] in ('playback','next'):
+        saved=local.get(ident) or {}
+        # Hide a just-finished item while the Trakt scrobble catches up, but a
+        # stale local flag must not suppress the cloud's next episode forever.
+        if recently_completed(saved):return ident,None
     status=None
     if needs_availability(value):
         status=f.core.check_availability(item['kind'],item,token)
@@ -245,7 +262,7 @@ def ensure(f,value,count=None,cancel=None):
     with lock(f,value,cancel,epoch):
         state=read(f,value,epoch) or initial()
         token=f.core.get_webshare_token() if needs_availability(value) else None
-        local=f.local_progress() if value['source'] in ('playback','next') else {};scanned=0;deadline=time.monotonic()+25
+        local=f.local_progress() if value['source'] in ('playback','next') else {};scanned=0;deadline=time.monotonic()+REQUEST_BUDGET
         while len(state['records'])<count and scanned<64 and time.monotonic()<deadline:
             if cancel and cancel.is_set():break
             if not state['pending']:
@@ -263,5 +280,5 @@ def ensure(f,value,count=None,cancel=None):
             state['seen']=list(seen);del state['pending'][:len(batch)];scanned+=len(batch);write(f,value,state,epoch)
         write(f,value,state,epoch)
         if display_list(value) and epoch==revision(f,value):
-            f.core.write_cache_entry('paging-display',key(value),state)
+            f.core.write_cache_entry('paging-display','v2_'+key(value),state)
         return view(state,count)

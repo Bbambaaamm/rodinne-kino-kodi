@@ -89,6 +89,18 @@ class PortableBackupTests(unittest.TestCase):
         result = self.module.backup()
         self.assertEqual((Path(result['path']) / 'userdata/keymaps/remote.xml').read_bytes(), b'original')
 
+    def test_failed_backup_can_retry_when_clock_has_not_advanced(self):
+        (self.keymaps / 'remote.xml').write_bytes(b'original')
+        fixed = types.SimpleNamespace(
+            now=lambda: types.SimpleNamespace(strftime=lambda _: '20261123-192730-476919'))
+        with patch.object(self.module, 'datetime', fixed):
+            with patch('shutil.copyfile', side_effect=PermissionError(errno.EACCES, 'Permission denied')):
+                with self.assertRaises(PermissionError):
+                    self.module.backup()
+            result = self.module.backup()
+        self.assertTrue(Path(result['path']).name.endswith('-1'))
+        self.assertEqual((Path(result['path']) / 'userdata/keymaps/remote.xml').read_bytes(), b'original')
+
     def test_restore_tree_merges_content_without_changing_metadata(self):
         source = self.root / 'restore'
         source.mkdir()

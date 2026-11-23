@@ -231,6 +231,10 @@ class ResumePlayer:
         if completed and item['kind']=='episode':
             HOME.setProperty('Family.Paging.ChangedShow',str(item['tmdb_id'])+':'+revision)
         HOME.setProperty('Family.Paging.Revision',revision)
+        # A new watch-state revision starts with one fast page. Counts from a
+        # previous long browsing session must not trigger a 100+ item rebuild.
+        for key in ('list_movie_playback','list_episode_playback','list_episode_next'):
+            HOME.setProperty('Family.Paging.Count.'+key,'20')
         for category in ('source', 'list'):
             folder = os.path.join(PROFILE, 'cache', category)
             for name in ('movie_playback.json', 'episode_playback.json', 'episode_next.json', 'family_personal_both_history.json'):

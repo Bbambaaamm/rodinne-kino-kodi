@@ -15,8 +15,9 @@ CORE = Path(__file__).resolve().parents[1] / 'addons/plugin.video.webshare.avail
 
 class WebshareTokenTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(
-            dir=Path(__file__).resolve().parents[1] / '_testtmp')
+        temporary_root = Path(__file__).resolve().parents[1] / '_testtmp'
+        temporary_root.mkdir(exist_ok=True)
+        self.temporary = tempfile.TemporaryDirectory(dir=temporary_root)
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         (self.root / 'md5crypt.py').write_text(

@@ -364,9 +364,9 @@ def render_list(kind, source, personal=False):
                        'account', url('accounts'), command=command)
             xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
             return
-        try:count = int(PARAMS.get('count') or paging.BATCH)
-        except ValueError:count = paging.BATCH
-        count = min(paging.MAX_ITEMS, max(count, paging.requested(family, value)))
+        # The Home property is the single source of truth.  In particular, it
+        # lets paging migrate stale pre-batch values before any network work.
+        count = paging.requested(family, value)
         key = paging.key(value)
         heartbeat=HOME.getProperty('Family.Service.Heartbeat')
         background=paging.display_list(value) and heartbeat and time.time()-float(heartbeat)<10
@@ -405,15 +405,10 @@ def render_list(kind, source, personal=False):
     except Exception as exc:
         title, message = classify_error(exc)
         retry = url('retry', kind=kind, source=source, personal=int(personal))
-        stale_key = 'family_personal_{}_{}'.format(kind, source) if personal else core.list_key(kind, source)
         key=paging.key(paging.route(kind,source,personal))
-        stale = core.read_cache_entry('list', stale_key, 86400)
-        if stale:
-            state_item('Dočasně zobrazuji uložený seznam  •  Zkusit znovu',message,'stale',retry,key,retry_command)
-            for record in stale:
-                add_record(record)
-        else:
-            state_item(title + '  •  Zkusit znovu',message,'error',retry,key,retry_command)
+        # Never fall back to a legacy, unverified list. A temporary error is
+        # preferable to displaying a title that cannot be played.
+        state_item(title + '  •  Zkusit znovu',message,'error',retry,key,retry_command)
         HOME.setProperty('Family.LastListError', json.dumps({'kind': kind, 'source': source, 'class': type(exc).__name__}))
     xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
 

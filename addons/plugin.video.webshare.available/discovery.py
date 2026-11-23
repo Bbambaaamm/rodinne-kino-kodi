@@ -69,7 +69,7 @@ def filtered(rows,value):
 
 def fetch(core,value,page=1,cancel=None):
     value=spec(**value);page=max(1,min(500,int(page)))
-    key=core.hashed_name(repr(('discover-v2',value,page)))
+    key=core.hashed_name(repr(('discover-v3-webshare',value,page)))
     cached=core.read_cache_entry('search',key,600)
     if cached is not None:return cached
     stopped=lambda:cancel is not None and cancel.is_set()
@@ -108,7 +108,7 @@ def fetch(core,value,page=1,cancel=None):
         for i in range(max((len(p[0]) for p in parts),default=0)):
             for items,_ in parts:
                 if i<len(items):rows.append(items[i])
-        result={'rows':filtered(rows,value),'more':any(p[1] for p in parts),'next':page+1,'similar':False}
+        result={'rows':search.available(core,filtered(rows,value),cancel),'more':any(p[1] for p in parts),'next':page+1,'similar':False}
     if not stopped():core.write_cache_entry('search',key,result)
     return result
 

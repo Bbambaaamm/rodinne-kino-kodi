@@ -103,7 +103,8 @@ class SetupCompletionTests(unittest.TestCase):
         self.properties[key] = 'true'
         self.a.invalidate_lists()
         self.assertNotIn(key, self.properties)
-        self.assertEqual(self.properties['Family.Paging.Display.Wanted.list_movie_playback'], '10')
+        self.assertEqual(self.properties['Family.Paging.Display.Wanted.list_movie_playback'], '20')
+        self.assertEqual(self.properties['Family.Paging.Count.list_movie_playback'], '20')
 
     def test_webshare_login_uses_upstream_hashing_and_keeps_plain_password_out_of_request(self):
         crypt = types.SimpleNamespace(md5crypt=lambda *_: 'fixture-encrypted')

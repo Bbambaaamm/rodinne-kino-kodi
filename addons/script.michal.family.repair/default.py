@@ -18,8 +18,18 @@ def backup():
     if os.path.isdir(saved.get('path', '')):
         return saved
 
-    destination = os.path.join(profile, 'backups', datetime.now().strftime('%Y%m%d-%H%M%S-%f'))
-    os.makedirs(destination)
+    backup_root = os.path.join(profile, 'backups')
+    os.makedirs(backup_root, exist_ok=True)
+    stem = datetime.now().strftime('%Y%m%d-%H%M%S-%f')
+    for suffix in range(100):
+        destination = os.path.join(backup_root, stem + ('' if suffix == 0 else '-' + str(suffix)))
+        try:
+            os.makedirs(destination)
+            break
+        except FileExistsError:
+            continue
+    else:
+        raise RuntimeError('Unable to allocate a unique backup directory')
     user = maintenance.USER
     saved_paths = (
         ('userdata/keymaps', os.path.join(user, 'keymaps')),

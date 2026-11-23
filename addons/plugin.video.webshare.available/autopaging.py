@@ -1,4 +1,4 @@
-"""Prefetch the next ten, then refresh the same native carousel by URL."""
+"""Prefetch the next twenty, then refresh the same native carousel by URL."""
 import json,queue,threading,time
 import paging as p
 import streaming
@@ -6,6 +6,19 @@ import streaming
 STREAMING_HUB = 11104
 STREAMING_ROWS = {'movie': 502, 'tv': 503}
 STREAMING_PROPERTY = 'Family.Streaming.'
+
+
+def completed_count(target, data):
+    """Expose verified cards progressively while preserving 20-card milestones."""
+    records=len(data.get('records') or [])
+    if records >= target or not data.get('more'):
+        return target
+    return max(p.BATCH, records)
+
+
+def next_target(visible):
+    """Keep filling the same 20-card milestone after a partial pass."""
+    return min(p.MAX_ITEMS, ((visible//p.BATCH)+1)*p.BATCH)
 
 
 def sync_streaming_counts(f):
@@ -206,12 +219,13 @@ class Pager:
             value=p.from_key(key)
             if rev!=p.revision(f,value):continue
             if ok:
-                f.HOME.setProperty(p.count_property(value),str(target))
+                visible=completed_count(target,data)
+                f.HOME.setProperty(p.count_property(value),str(visible))
                 self.next_spotlight_sync = 0
                 if window==10025 and labels.get('ListItem.Property(family.paging.key)')==key:
                     if value['source'].startswith('genre_'):f.HOME.setProperty('Family.Paging.GenreRefresh',json.dumps({'key':key,'time':time.time()}))
                     f.xbmc.executebuiltin('Container.Refresh()')
-                self.retry.pop(key,None);self.publish(key,'ready',requested=target,items=len(data['records']),more=data['more'],source_pages=data.get('source_pages',0))
+                self.retry.pop(key,None);self.publish(key,'ready',requested=visible,items=len(data['records']),more=data['more'],source_pages=data.get('source_pages',0))
             else:
                 self.retry[key]=time.monotonic()+30;self.publish(key,'error',error_type=data)
                 if labels.get('ListItem.Property(family.paging.key)')==key:
@@ -249,7 +263,7 @@ class Pager:
         try:count=int(info[keys[0]]);selected=int(info[keys[1]])
         except (ValueError,KeyError):return
         if not forced and selected<max(1,count-5):return
-        target=desired+p.BATCH;cancel=threading.Event();rev=p.revision(f,value);self.inflight[key]=cancel;self.publish(key,'loading',requested=target)
+        target=next_target(desired);cancel=threading.Event();rev=p.revision(f,value);self.inflight[key]=cancel;self.publish(key,'loading',requested=target)
         def run():
             try:result=p.ensure(f,value,target,cancel);self.results.put((key,target,rev,True,result))
             except Exception as exc:self.results.put((key,target,rev,False,type(exc).__name__))
