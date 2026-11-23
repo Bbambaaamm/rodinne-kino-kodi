@@ -25,20 +25,32 @@ searching = load('searching')
 
 
 class AvailabilityEverywhereTests(unittest.TestCase):
+    def family_with_properties(self, properties=None):
+        values = dict(properties or {})
+
+        class Home:
+            def getProperty(self, name):
+                return values.get(name, '')
+
+            def setProperty(self, name, value):
+                values[name] = value
+
+        return types.SimpleNamespace(HOME=Home()), values
+
     def strict_function(self, meta, responses):
         tree = ast.parse((ROOT / 'core.py').read_text(encoding='utf8'))
         node = next(row for row in tree.body if isinstance(row, ast.FunctionDef) and row.name == 'strict_availability')
         requests = []
 
-        def webshare(query, token, limit=20):
+        def webshare(query, token, limit=20, timeout=20):
             requests.append((query, limit))
             return responses.get(query, [])
 
-        env = {'fetch_meta': lambda kind, item: meta, 'webshare_search': webshare}
+        env = {'fetch_meta': lambda kind, item: meta, 'webshare_search': webshare, 'time': time}
         exec(compile(ast.Module(body=[node], type_ignores=[]), 'core.py', 'exec'), env)
-        def strict(*args):
+        def strict(*args, **kwargs):
             with patch.dict(sys.modules, {'matching': matching}):
-                return env['strict_availability'](*args)
+                return env['strict_availability'](*args, **kwargs)
         return strict, requests
 
     def test_all_list_types_require_webshare_confirmation(self):
@@ -51,6 +63,43 @@ class AvailabilityEverywhereTests(unittest.TestCase):
             {'personal': True, 'source': 'collection'},
         ]
         self.assertTrue(all(paging.needs_availability(value) for value in values))
+
+    def test_old_large_first_page_is_migrated_back_to_twenty(self):
+        value = paging.route('movie', 'recommendations')
+        count_name = paging.count_property(value)
+        schema_name = paging.count_schema_property(value)
+        family, properties = self.family_with_properties({count_name: '50'})
+
+        self.assertEqual(paging.requested(family, value), 20)
+        self.assertEqual(properties[count_name], '20')
+        self.assertEqual(properties[schema_name], paging.COUNT_SCHEMA)
+
+    def test_current_schema_keeps_progressively_loaded_count(self):
+        value = paging.route('movie', 'recommendations')
+        family, _ = self.family_with_properties({
+            paging.count_property(value): '40',
+            paging.count_schema_property(value): paging.COUNT_SCHEMA,
+        })
+
+        self.assertEqual(paging.requested(family, value), 40)
+
+    def test_one_list_request_has_professional_time_budget(self):
+        self.assertLessEqual(paging.REQUEST_BUDGET, 1.0)
+
+    def test_partial_prefetch_does_not_publish_an_incomplete_twenty_item_step(self):
+        tree = ast.parse((ROOT / 'autopaging.py').read_text(encoding='utf8'))
+        nodes = [row for row in tree.body if isinstance(row, ast.FunctionDef)
+                 and row.name in ('completed_count', 'next_target')]
+        env = {'p': types.SimpleNamespace(BATCH=20), 'max': max, 'len': len}
+        env['p'].MAX_ITEMS = 10000
+        exec(compile(ast.Module(body=nodes, type_ignores=[]), 'autopaging.py', 'exec'), env)
+
+        self.assertEqual(env['completed_count'](40, {'records': [{}]*31, 'more': True}), 31)
+        self.assertEqual(env['completed_count'](40, {'records': [{}]*40, 'more': True}), 40)
+        self.assertEqual(env['completed_count'](40, {'records': [{}]*27, 'more': False}), 40)
+        self.assertEqual(env['next_target'](20), 40)
+        self.assertEqual(env['next_target'](31), 40)
+        self.assertEqual(env['next_target'](40), 60)
 
     def test_search_keeps_people_and_only_confirmed_media(self):
         rows = [
@@ -84,6 +133,7 @@ class AvailabilityEverywhereTests(unittest.TestCase):
         self.assertEqual(result['candidate']['ident'], 'correct')
         self.assertEqual(requests[:2], [('Prsteny moci S03E04', 100), ('The Rings of Power S03E04', 100)])
 
+
     def test_stale_local_completion_does_not_hide_trakt_next_episode(self):
         tree = ast.parse((ROOT / 'paging.py').read_text(encoding='utf8'))
         nodes = [row for row in tree.body if isinstance(row, ast.FunctionDef)
@@ -113,3 +163,4 @@ class AvailabilityEverywhereTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
