@@ -14,10 +14,17 @@
     "addons/plugin.video.webshare.available/tracking.py": "c4610bf7d3a4f94303044de625a6eb16fc6a4c7d6d1b087de94a80f550292246"
   },
   "measured": {
+    "remote_focus_ms": 63.0,
+    "back_restore_ms": 93.4,
     "cached_section_s": 0.549,
     "cold_first_page_s": 1.768,
     "next_page_s": 2.118,
-    "search_s": 2.307
+    "search_s": 2.307,
+    "cached_card_s": 0.890,
+    "cold_card_s": 1.326,
+    "sources_s": 3.565,
+    "playback_start_s": 2.043,
+    "busy_feedback_ms": 30.4
   },
   "observed": {
     "cold_first_verified_cards": 7,
@@ -33,8 +40,8 @@
     "mash_s01e10_visible": true,
     "rings_of_power_s03e04_visible": true,
     "back_selection_preserved": true,
+    "playback_started_and_stopped": true,
     "no_crash_or_freeze": true
   },
-  "notes": "Technický protokol bez účtů, tokenů a adres videí. Milníky zůstávají 20 a +20; potvrzené karty se při pomalejším Webshare zobrazují průběžně v krátkých dávkách. Veřejné vydání vyžaduje výslovné schválení."
+  "notes": "Technický protokol bez účtů, tokenů a adres videí. Milníky zůstávají 20 a +20; potvrzené karty se při pomalejším Webshare zobrazují průběžně v krátkých dávkách. Kodi bylo před každou skupinou měření probuzeno simulací šipky; aktivní spořič se nehodnotí jako pád. Nabídka zdrojů: první načtení 3,565 s, opakované načtení 0,129 s. Veřejné vydání vyžaduje výslovné schválení."
 }
-
