@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<addon id="plugin.video.webshare.available" name="Rodinné kino – filmy a seriály" version="0.9.23" provider-name="Michal">
+<addon id="plugin.video.webshare.available" name="Rodinné kino – filmy a seriály" version="0.9.24" provider-name="Michal">
   <requires>
     <import addon="xbmc.python" version="3.0.0" />
   </requires>

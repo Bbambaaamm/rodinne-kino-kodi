@@ -7,12 +7,13 @@ ANDROID_NAVIGATION = '''
     <!-- Rodinne kino: Android touch navigation -->
     <include name="Family_Android_Touch_Navigation">
         <definition>
-            <control type="button"><left>145</left><top>130</top><width>145</width><height>85</height><label /><texturenofocus /><texturefocus /><onclick>ReplaceWindow(Home)</onclick></control>
-            <control type="button"><left>290</left><top>130</top><width>135</width><height>85</height><label /><texturenofocus /><texturefocus /><onclick>ReplaceWindow(1101)</onclick></control>
-            <control type="button"><left>425</left><top>130</top><width>140</width><height>85</height><label /><texturenofocus /><texturefocus /><onclick>ReplaceWindow(1102)</onclick></control>
-            <control type="button"><left>565</left><top>130</top><width>135</width><height>85</height><label /><texturenofocus /><texturefocus /><onclick>ReplaceWindow(1103)</onclick></control>
-            <control type="button"><left>700</left><top>130</top><width>330</width><height>85</height><label /><texturenofocus /><texturefocus /><onclick>ReplaceWindow(1104)</onclick></control>
-            <control type="button"><left>1570</left><top>130</top><width>110</width><height>85</height><label /><texturenofocus /><texturefocus /><onclick>ActivateWindow(Settings)</onclick></control>
+            <control type="button"><left>49</left><top>124</top><width>96</width><height>96</height><label /><texturenofocus /><texturefocus /><onclick>RunPlugin(plugin://plugin.video.webshare.available/?action=search&amp;entry=hub&amp;landing=1)</onclick></control>
+            <control type="button"><left>145</left><top>124</top><width>145</width><height>96</height><label /><texturenofocus /><texturefocus /><onclick>ReplaceWindow(Home)</onclick></control>
+            <control type="button"><left>290</left><top>124</top><width>135</width><height>96</height><label /><texturenofocus /><texturefocus /><onclick>ReplaceWindow(1101)</onclick></control>
+            <control type="button"><left>425</left><top>124</top><width>140</width><height>96</height><label /><texturenofocus /><texturefocus /><onclick>ReplaceWindow(1102)</onclick></control>
+            <control type="button"><left>565</left><top>124</top><width>135</width><height>96</height><label /><texturenofocus /><texturefocus /><onclick>ReplaceWindow(1103)</onclick></control>
+            <control type="button"><left>700</left><top>124</top><width>330</width><height>96</height><label /><texturenofocus /><texturefocus /><onclick>ReplaceWindow(1104)</onclick></control>
+            <control type="button"><right>65</right><top>124</top><width>96</width><height>96</height><label /><texturenofocus colordiffuse="01FFFFFF">common/white.png</texturenofocus><texturefocus colordiffuse="01FFFFFF">common/white.png</texturefocus><onclick>ActivateWindow(1170)</onclick></control>
         </definition>
     </include>
 '''
@@ -32,22 +33,95 @@ def home(original):
         raise RuntimeError('Arctic Fuse home switcher changed')
     settings_start = updated.find('    <include name="Home_Settings_Button">')
     if settings_start >= 0:
-        settings_end = updated.find('    </include>', settings_start)
+        settings_end = updated.find('\n    </include>', settings_start)
         if settings_end < 0:
             raise RuntimeError('Arctic Fuse settings control incomplete')
         section = updated[settings_start:settings_end]
-        section = section.replace('<param name="window">1170</param>',
-                                  '<param name="window">Settings</param>', 1)
+        section = section.replace('<param name="window">Settings</param>',
+                                  '<param name="window">1170</param>', 1)
         updated = updated[:settings_start] + section + updated[settings_end:]
+    legacy_markers = ('Rodinne kino: home search touch v1',
+                      'Rodinne kino: home search touch v2')
+    marker = 'Rodinne kino: home search touch v3'
+    if marker not in updated:
+        switcher = updated.find('    <include name="Home_Switcher_Horz">')
+        end = updated.find('\n    </include>', switcher)
+        if switcher < 0 or end < 0:
+            raise RuntimeError('Arctic Fuse horizontal home switcher missing')
+        section = updated[switcher:end]
+        search = re.search(
+            r'(<control type="image">(?:(?!</control>).)*?search\.png(?:(?!</control>).)*?</control>)',
+            section, re.DOTALL)
+        if not search:
+            raise RuntimeError('Arctic Fuse home search icon missing')
+        if any(value in section for value in legacy_markers):
+            section, count = re.subn(
+                r'\s*<!-- Rodinne kino: home search touch v[12] -->\s*'
+                r'<control type="button" id="9310">.*?</control>', '', section,
+                count=1, flags=re.DOTALL)
+            if count != 1:
+                raise RuntimeError('Arctic Fuse legacy search touch control changed')
+        button = '''
+                <!-- Rodinne kino: home search touch v3 -->
+                <control type="button" id="9310">
+                    <left>-36</left><top>-8</top><width>96</width><height>96</height>
+                    <label />
+                    <texturenofocus colordiffuse="01FFFFFF">common/white.png</texturenofocus>
+                    <texturefocus colordiffuse="01FFFFFF">common/white.png</texturefocus>
+                    <visible>!Skin.HasSetting(HomeSwitcher.DisableSearch)</visible>
+                    <onclick>RunPlugin(plugin://plugin.video.webshare.available/?action=search&amp;entry=hub&amp;landing=1)</onclick>
+                </control>'''
+        anchor = '                <include>Home_Switcher_Right_Buttons</include>'
+        if section.count(anchor) != 1:
+            raise RuntimeError('Arctic Fuse home right controls changed')
+        section = section.replace(anchor, anchor + button, 1)
+        updated = updated[:switcher] + section + updated[end:]
+    if 'Rodinne kino: home settings touch v' in updated:
+        switcher = updated.find('    <include name="Home_Switcher_Horz">')
+        end = updated.find('\n    </include>', switcher)
+        if switcher < 0 or end < 0:
+            raise RuntimeError('Arctic Fuse horizontal home switcher missing')
+        section = updated[switcher:end]
+        section, count = re.subn(
+            r'\s*<!-- Rodinne kino: home settings touch v[1-3] -->\s*'
+            r'<control type="button" id="9311">.*?</control>', '', section,
+            count=1, flags=re.DOTALL)
+        if count != 1:
+            raise RuntimeError('Arctic Fuse legacy settings touch control changed')
+        updated = updated[:switcher] + section + updated[end:]
     icon_start = updated.find('    <include name="Home_Grouplist_Icon">')
-    if icon_start >= 0:
-        icon_end = updated.find('    </include>', icon_start)
-        if icon_end < 0:
-            raise RuntimeError('Arctic Fuse menu icon incomplete')
-        section = updated[icon_start:icon_end]
-        section = section.replace('<control type="button" id="$PARAM[id]">',
+    icon_end = updated.find('\n    </include>', icon_start)
+    if icon_start < 0 or icon_end < 0:
+        raise RuntimeError('Arctic Fuse menu icon incomplete')
+    section = updated[icon_start:icon_end]
+    legacy_touch_marker = 'Rodinne kino: top icon touch target v1'
+    touch_marker = 'Rodinne kino: top icon touch target v2'
+    if touch_marker not in section:
+        match = re.search(r'\s*<control type="button" id="\$PARAM\[id\]">.*?</control>',
+                          section, re.DOTALL)
+        if not match:
+            raise RuntimeError('Arctic Fuse menu icon button missing')
+        button = match.group(0).strip()
+        button = re.sub(r'<control type="button" id="\$PARAM\[id\]">\s*',
             '<control type="button" id="$PARAM[id]">'
-            '<width>80</width><height>80</height>', 1) if '<width>80</width><height>80</height>' not in section else section
+            '<left>-16</left><top>-8</top><width>96</width><height>96</height>',
+            button, count=1)
+        button = button.replace('<width>80</width><height>80</height>', '', 1)
+        button = re.sub(r'\s*<texture(?:no)?focus(?:\s[^>]*)?\s*/>', '', button)
+        button = re.sub(r'\s*<texture(?:no)?focus(?:\s[^>]*)?>.*?</texture(?:no)?focus>',
+                        '', button, flags=re.DOTALL)
+        button = button.replace('</control>',
+            '<texturenofocus colordiffuse="01FFFFFF">common/white.png</texturenofocus>'
+            '<texturefocus colordiffuse="01FFFFFF">common/white.png</texturefocus>'
+            '</control>', 1)
+        section = section[:match.start()] + section[match.end():]
+        section = section.replace('<!-- ' + legacy_touch_marker + ' -->', '')
+        anchor = section.rfind('            </control>\n        </definition>')
+        if anchor < 0:
+            raise RuntimeError('Arctic Fuse menu icon group changed')
+        moved = ('                <!-- ' + touch_marker + ' -->\n'
+                 '                ' + button + '\n')
+        section = section[:anchor] + moved + section[anchor:]
         updated = updated[:icon_start] + section + updated[icon_end:]
     ET.fromstring(updated)
     return updated

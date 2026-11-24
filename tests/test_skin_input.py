@@ -11,9 +11,31 @@ spec = importlib.util.spec_from_file_location('tested_skin_input', SOURCE)
 skin_input = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(skin_input)
 
-HOME = '''<includes><include name="Home_Switcher_Horz"><control type="group">
-<visible>!String.IsEmpty(Window(Home).Property(HomeSwitcher.IsVisible))</visible>
-</control></include></includes>'''
+HOME = '''<includes>
+    <include name="Home_Switcher_Horz">
+        <control type="group">
+            <visible>!String.IsEmpty(Window(Home).Property(HomeSwitcher.IsVisible))</visible>
+            <control type="group">
+                <visible>!Skin.HasSetting(HomeSwitcher.DisableSearch)</visible>
+                <control type="image">
+                    <texture>special://skin/extras/icons/search.png</texture>
+                </control>
+            </control>
+                <include>Home_Switcher_Right_Buttons</include>
+        </control>
+    </include>
+    <include name="Home_Grouplist_Icon">
+        <definition>
+            <control type="group">
+                <control type="button" id="$PARAM[id]"><width>80</width><height>80</height>
+                    <onclick>ReplaceWindow($PARAM[window])</onclick><texturenofocus />
+                </control>
+                <control type="group"><control type="image" /></control>
+                <control type="group"><control type="image" /></control>
+            </control>
+        </definition>
+    </include>
+</includes>'''
 HUBS = '''<includes>
     <include name="Hub_Window">
         <definition><control type="group" />
@@ -79,18 +101,29 @@ class SkinInputTests(unittest.TestCase):
                              'System.Platform.Android + !Skin.HasSetting(HomeSwitcher.Vertical)')
         buttons = root.findall("./include[@name='Family_Android_Touch_Navigation']/definition/control")
         self.assertEqual([button.findtext('onclick') for button in buttons], [
+            'RunPlugin(plugin://plugin.video.webshare.available/?action=search&entry=hub&landing=1)',
             'ReplaceWindow(Home)', 'ReplaceWindow(1101)', 'ReplaceWindow(1102)',
-            'ReplaceWindow(1103)', 'ReplaceWindow(1104)', 'ActivateWindow(Settings)'])
-        self.assertEqual(buttons[3].findtext('left'), '565')
-        self.assertEqual(buttons[-1].findtext('left'), '1570')
+            'ReplaceWindow(1103)', 'ReplaceWindow(1104)', 'ActivateWindow(1170)'])
+        self.assertEqual(buttons[0].findtext('left'), '49')
+        self.assertEqual(buttons[4].findtext('left'), '565')
+        self.assertEqual(buttons[-1].findtext('right'), '65')
+        self.assertEqual(buttons[-1].findtext('width'), '96')
+        self.assertEqual(buttons[-1].find('texturenofocus').get('colordiffuse'),
+                         '01FFFFFF')
+        self.assertTrue(all(int(button.findtext('width')) >= 96 for button in buttons))
+        self.assertTrue(all(int(button.findtext('height')) >= 96 for button in buttons))
+        rectangles = sorted((int(button.findtext('left')), int(button.findtext('width')))
+                            for button in buttons if button.findtext('left') is not None)
+        self.assertTrue(all(left + width <= following
+                            for (left, width), (following, _) in zip(rectangles, rectangles[1:])))
         self.assertEqual(skin_input.hubs(result), result)
 
-    def test_existing_navigation_gear_opens_settings(self):
-        old = skin_input.hubs(HUBS).replace('ActivateWindow(Settings)',
-                                                'ActivateWindow(1170)')
+    def test_existing_navigation_gear_opens_options_panel(self):
+        old = skin_input.hubs(HUBS).replace('ActivateWindow(1170)',
+                                           'ActivateWindow(Settings)')
         result = skin_input.hubs(old)
-        self.assertIn('ActivateWindow(Settings)', result)
-        self.assertNotIn('ActivateWindow(1170)', result)
+        self.assertIn('ActivateWindow(1170)', result)
+        self.assertNotIn('ActivateWindow(Settings)', result)
 
     def test_streaming_hub_has_its_own_touch_navigation(self):
         result = skin_input.streaming_hub(STREAMING)
@@ -106,9 +139,30 @@ class SkinInputTests(unittest.TestCase):
         self.assertEqual(button.findtext('onclick'), 'ActivateWindow(Home)')
         self.assertEqual(skin_input.settings(result), result)
 
-    def test_android_keeps_home_switcher_visible(self):
+    def test_home_has_real_search_and_top_icon_touch_targets(self):
         result = skin_input.home(HOME)
         self.assertIn('System.Platform.Android | !String.IsEmpty', result)
+        root = ET.fromstring(result)
+        search = root.find(".//control[@id='9310']")
+        self.assertIn('Rodinne kino: home search touch v3', result)
+        self.assertNotIn('Rodinne kino: home search touch v1', result)
+        self.assertNotIn('Rodinne kino: home search touch v2', result)
+        self.assertEqual(search.findtext('left'), '-36')
+        self.assertEqual(search.findtext('width'), '96')
+        self.assertEqual(search.findtext('height'), '96')
+        self.assertEqual(search.find('texturenofocus').get('colordiffuse'), '01FFFFFF')
+        self.assertEqual(search.findtext('onclick'),
+            'RunPlugin(plugin://plugin.video.webshare.available/?action=search&entry=hub&landing=1)')
+        self.assertIsNone(root.find(".//control[@id='9311']"))
+        self.assertNotIn('Rodinne kino: home settings touch v', result)
+        icon = root.find("./include[@name='Home_Grouplist_Icon']/definition/control")
+        target = list(icon)[-1]
+        self.assertEqual(target.get('type'), 'button')
+        self.assertEqual(target.get('id'), '$PARAM[id]')
+        self.assertEqual(target.findtext('width'), '96')
+        self.assertEqual(target.findtext('height'), '96')
+        self.assertEqual(target.find('texturefocus').get('colordiffuse'), '01FFFFFF')
+        self.assertEqual(target.findtext('onclick'), 'ReplaceWindow($PARAM[window])')
         self.assertEqual(skin_input.home(result), result)
 
     def test_keyboard_exposes_kodi_password_visibility_control(self):
