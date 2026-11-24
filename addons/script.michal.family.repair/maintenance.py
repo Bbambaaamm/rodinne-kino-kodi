@@ -1229,7 +1229,14 @@ def service(updater=None):
     pager = provider_module('autopaging').Pager(family)
     ratings = provider_module('csfd').Ratings(family)
     movie_watch = provider_module('movie_watch').MovieWatchSync(family)
-    trakt_sync = provider_module('trakt_sync').TraktActivitySync(family)
+    try:
+        trakt_sync = provider_module('trakt_sync').TraktActivitySync(family)
+    except ModuleNotFoundError as error:
+        # Kodi can start the new service before its bundled provider is
+        # installed. Keep the old service features and the idle updater alive.
+        if error.name != 'trakt_sync':
+            raise
+        trakt_sync = None
     HOME.setProperty('Family.Service.Version', VERSION)
     monitor = xbmc.Monitor()
     from accounts import offer_setup
@@ -1267,7 +1274,8 @@ def service(updater=None):
                         and not player.isPlaying() and not HOME.getProperty('Family.Card.Active'))
             if updater and updater.ready(browsing and current != 10025):
                 return
-            trakt_sync.tick(browsing)
+            if trakt_sync is not None:
+                trakt_sync.tick(browsing)
             movie_watch.tick(browsing)
             try:
                 ratings.tick(browsing)
@@ -1319,7 +1327,8 @@ def service(updater=None):
         pager.close()
         ratings.close()
         movie_watch.close()
-        trakt_sync.close()
+        if trakt_sync is not None:
+            trakt_sync.close()
         if HOME.getProperty('Family.Service.Lock') == token:
             HOME.clearProperty('Family.Service.Heartbeat')
             HOME.clearProperty('Family.Service.Maintenance')

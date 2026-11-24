@@ -26,11 +26,12 @@ def addon_version(addon):
 
 
 class Snapshot:
-    def __init__(self):
+    def __init__(self, runtime_only=False):
         stamp = datetime.now().strftime('%Y%m%d-%H%M%S-%f')
         self.path = os.path.join(m.PROFILE, 'update-backups', stamp)
         self.files = []
         self.settings = {}
+        self.runtime_only = runtime_only
 
     def capture(self):
         os.makedirs(self.path)
@@ -38,6 +39,13 @@ class Snapshot:
         package = m.read_json(os.path.join(m.PATH, 'resources', 'manifest.json'))
         provider = os.path.join(m.HOME_PATH, 'addons', m.PROVIDER)
         paths = {os.path.join(provider, name) for name in package['provider_files']}
+        if self.runtime_only:
+            for root, dirs, names in os.walk(provider):
+                dirs[:] = [name for name in dirs if name != '__pycache__']
+                paths.update(os.path.join(root, name) for name in names)
+            paths.add(os.path.join(m.PROFILE, 'changes.json'))
+            self.capture_files(paths)
+            return
         skin = xbmcvfs.translatePath('special://skin/')
         for folder in (provider, os.path.join(skin, '1080i'), m.search_skin_backup(),
                        os.path.dirname(m.streaming_template_backup(m.STREAMING_TEMPLATES[0]))):
@@ -58,12 +66,7 @@ class Snapshot:
                       os.path.join(m.PROFILE, 'changes.json'),
                       os.path.join(m.USER, 'addon_data', 'plugin.video.themoviedb.helper',
                                    'reconfigured_players', 'family.webshare.json')))
-        for index, target in enumerate(sorted({m.local_path(path) for path in paths})):
-            saved = os.path.join(self.path, str(index))
-            exists = os.path.isfile(target)
-            if exists:
-                shutil.copyfile(target, saved)
-            self.files.append({'target': target, 'saved': saved, 'exists': exists})
+        self.capture_files(paths)
         self.settings['kodi'] = {key: m.rpc('Settings.GetSettingValue', {'setting': key})['value']
                                  for key in ('general.addonupdates', 'filelists.showparentdiritems', 'locale.audiolanguage',
                                              'videoplayer.preferdefaultflag')}
@@ -77,6 +80,14 @@ class Snapshot:
                                   for key in layout['bools']}
         m.write_json(os.path.join(self.path, 'snapshot.json'), {'files': self.files, 'settings': self.settings})
 
+    def capture_files(self, paths):
+        for index, target in enumerate(sorted({m.local_path(path) for path in paths})):
+            saved = os.path.join(self.path, str(index))
+            exists = os.path.isfile(target)
+            if exists:
+                shutil.copyfile(target, saved)
+            self.files.append({'target': target, 'saved': saved, 'exists': exists})
+
     def restore(self):
         for entry in self.files:
             target = entry['target']
@@ -87,6 +98,9 @@ class Snapshot:
                 os.replace(temporary, target)
             elif os.path.isfile(target):
                 os.remove(target)
+        if self.runtime_only:
+            xbmc.executebuiltin('UpdateLocalAddons')
+            return
         for key, value in self.settings['kodi'].items():
             m.rpc('Settings.SetSettingValue', {'setting': key, 'value': value})
         for group, addon in (('tmdb', 'plugin.video.themoviedb.helper'), ('trakt', 'script.trakt')):
@@ -117,12 +131,16 @@ class Updater:
         if not changes.get('applied') or changes.get('rolled_back'):
             return False
         package = m.read_json(os.path.join(m.PATH, 'resources', 'manifest.json'))
+        policy = m.read_json(os.path.join(m.PATH, 'resources', 'update-policy.json'))
+        runtime_only = (policy.get('version') == m.VERSION
+                        and changes.get('version') in policy.get('runtime_from', []))
         target = {'version': m.VERSION, 'provider': m.packaged_provider_version(),
                   'provider_sha256': package['provider_sha256'],
-                  'skin_version': addon_version('skin.arctic.fuse.3')}
+                  'skin_version': addon_version('skin.arctic.fuse.3'),
+                  'runtime_only': runtime_only}
         if (changes.get('version') != target['version']
                 or changes.get('provider_sha256') != target['provider_sha256']
-                or changes.get('skin_version') != target['skin_version']
+                or (not runtime_only and changes.get('skin_version') != target['skin_version'])
                 or addon_version(m.PROVIDER) != target['provider']):
             self.target = target
             m.HOME.setProperty('Family.Update.Pending', m.VERSION)
@@ -150,19 +168,25 @@ class Updater:
     def apply(self, backup_function):
         if not self.ready():
             return False
-        snapshot = Snapshot()
+        runtime_only = self.target['runtime_only']
+        snapshot = Snapshot(runtime_only)
         m.HOME.setProperty('Family.Setup.InProgress', 'update')
         m.HOME.setProperty('Family.Update.State', 'applying')
         captured = False
         try:
             snapshot.capture()
             captured = True
-            m.apply(backup_function, restart_service=False)
+            if runtime_only:
+                self.apply_runtime()
+            else:
+                m.apply(backup_function, restart_service=False)
             m.write_json(self.state_path, {'target': self.target, 'status': 'applied',
                                           'applied': time.time(), 'backup': snapshot.path})
             m.HOME.clearProperty('Family.Update.Pending')
             m.HOME.setProperty('Family.Update.State', 'applied')
-            xbmcgui.Dialog().notification('Rodinné kino', 'Vzhled a filmový doplněk byly aktualizovány.',
+            notification = ('Filmový doplněk byl aktualizován.' if runtime_only
+                            else 'Vzhled a filmový doplněk byly aktualizovány.')
+            xbmcgui.Dialog().notification('Rodinné kino', notification,
                                            time=4500, sound=False)
             return True
         except Exception as error:
@@ -187,3 +211,13 @@ class Updater:
             m.HOME.clearProperty('Family.Service.Stop')
             m.HOME.clearProperty('Family.Setup.InProgress')
             xbmc.executebuiltin('RunScript(special://home/addons/script.michal.family.repair/service.py)')
+
+    def apply_runtime(self):
+        path = os.path.join(m.PROFILE, 'changes.json')
+        changes = m.read_json(path)
+        package = m.read_json(os.path.join(m.PATH, 'resources', 'manifest.json'))
+        m.install_provider()
+        changes.update(version=m.VERSION, provider_version=self.target['provider'],
+                       provider_sha256=self.target['provider_sha256'],
+                       provider_files=package['provider_files'], applied=time.time())
+        m.write_json(path, changes)

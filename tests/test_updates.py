@@ -175,6 +175,35 @@ class UpdateTests(unittest.TestCase):
             'RunScript(special://home/addons/script.michal.family.repair/service.py)')
         self.assertFalse(self.properties.get('Family.Setup.InProgress'))
 
+    def test_runtime_repair_upgrades_provider_without_rebuilding_existing_skin(self):
+        self.write(self.bundle / 'resources/update-policy.json',
+                   {'version': self.m.VERSION, 'runtime_from': [self.original_changes['version'], self.m.VERSION]})
+        self.versions['skin.arctic.fuse.3'] = '3.5.10'
+        self.m.apply.side_effect = RuntimeError('Layout rebuild cannot finish')
+        self.m.install_provider = Mock(
+            side_effect=lambda: self.versions.update({self.m.PROVIDER: '0.9.14'}))
+        self.assertTrue(self.updater.apply(Mock()))
+        self.m.apply.assert_not_called()
+        self.m.install_provider.assert_called_once_with()
+        self.assertTrue(self.updater.target['runtime_only'])
+        self.assertEqual(self.read(self.changes_path)['provider_sha256'], 'new-checksum')
+        self.assertEqual(self.read(self.changes_path)['skin_version'], '3.5.4')
+        self.assertFalse(self.updates.Updater().pending())
+
+    def test_runtime_repair_restores_provider_when_install_fails(self):
+        self.write(self.bundle / 'resources/update-policy.json',
+                   {'version': self.m.VERSION, 'runtime_from': [self.original_changes['version']]})
+        def interrupted_install():
+            (self.provider / 'core.py').write_text('incomplete update')
+            (self.provider / 'new_module.py').write_text('new file')
+            raise OSError('Install interrupted')
+        self.m.install_provider = Mock(side_effect=interrupted_install)
+        self.assertFalse(self.updater.apply(Mock()))
+        self.assertEqual((self.provider / 'core.py').read_text(), 'previous working source')
+        self.assertFalse((self.provider / 'new_module.py').exists())
+        self.assertEqual(self.read(self.changes_path), self.original_changes)
+        self.assertTrue(self.read(self.updater.state_path)['restored'])
+
     def test_partial_failure_restores_previous_files_and_manifest(self):
         def broken(*args, **kwargs):
             (self.provider / 'core.py').write_text('incomplete update')
