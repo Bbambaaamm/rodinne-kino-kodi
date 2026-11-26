@@ -91,6 +91,37 @@ CONFIRM = '''<includes>
 
 
 class SkinInputTests(unittest.TestCase):
+    def test_native_skin_preview_defers_startup_that_can_close_confirmation(self):
+        original = '''<window>
+            <include>Action_BuildViews</include>
+            <include>Action_MigrateSettings</include>
+            <include condition="!$EXP[ViewTypes]">Action_BuildShortcuts_OnLoad</include>
+            <include content="Hub_Onload"><param name="window_id">Home</param></include>
+            <onload condition="!Skin.HasSetting(Home.FirstRun)">AlarmClock(reloadskin,ReloadSkin(),00:00,silent)</onload>
+            <onload>SetProperty(Other,ready,Home)</onload>
+        </window>'''
+        result = skin_input.defer_preview_startup(original)
+        root = ET.fromstring(result)
+        guard = 'String.IsEmpty(Window(Home).Property(Family.Setup.SkinPreview))'
+        self.assertTrue(all(guard in node.get('condition', '') for node in root.findall('include')))
+        self.assertEqual(root.findall('include')[2].get('condition'), '[!$EXP[ViewTypes]] + ' + guard)
+        self.assertIn(guard, root.findall('onload')[0].get('condition'))
+        self.assertNotIn('condition', root.findall('onload')[1].attrib)
+        self.assertEqual(skin_input.defer_preview_startup(result), result)
+
+    def test_confirmation_keeps_native_buttons_with_kodis_python38(self):
+        original_indent = getattr(ET, 'indent', None)
+        if original_indent is not None:
+            del ET.indent
+        try:
+            result = skin_input.confirmation(CONFIRM)
+        finally:
+            if original_indent is not None:
+                ET.indent = original_indent
+        controls = ET.fromstring(result).findall("./include[@name='DialogConfirm_Items']/definition/control")
+        self.assertEqual([node.attrib['id'] for node in controls], ['11', '10', '12'])
+        self.assertEqual(skin_input.confirmation(result), result)
+
     def test_touch_buttons_are_in_both_active_hub_windows(self):
         result = skin_input.hubs(HUBS)
         root = ET.fromstring(result)

@@ -1,14 +1,16 @@
 """Keep Arctic Fuse's own hub visibility and content when embedding catalogues."""
 import ast
 from pathlib import Path
+import re
 import unittest
 from xml.etree import ElementTree as ET
 
 
 SOURCE = Path(__file__).resolve().parents[1] / 'addons/script.michal.family.repair/maintenance.py'
 tree = ast.parse(SOURCE.read_text(encoding='utf8'))
-nodes = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == 'streaming_combined_text']
-env = {'ET': ET}
+nodes = [node for node in tree.body if isinstance(node, ast.FunctionDef)
+         and node.name in ('skin_include', 'streaming_poster_layout', 'streaming_combined_text')]
+env = {'ET': ET, 're': re}
 exec(compile(ast.Module(body=nodes, type_ignores=[]), str(SOURCE), 'exec'), env)
 transform = env['streaming_combined_text']
 SELECTED = 'String.IsEqual(Container(601).ListItem.Property(guid),{widget_guid})'
@@ -22,6 +24,24 @@ def widget(visible, content=False):
 
 
 class StreamingCompatibilityTests(unittest.TestCase):
+    def test_service_poster_supports_both_stock_artwork_indentations(self):
+        for indent in ('                ', '                    '):
+            with self.subTest(indent=indent):
+                original = (
+                    '<includes>\n    <include name="Layout_Poster">\n'
+                    '        <definition><control type="group">\n'
+                    + indent + '<include content="Object_Layout_Image_Icon">\n'
+                    + indent + '    <param name="icon">stock</param>\n'
+                    + indent + '</include>\n'
+                    '        </control></definition>\n    </include>\n</includes>')
+                result = env['streaming_poster_layout'](original, None)
+                root = ET.fromstring(result)
+                self.assertIsNotNone(root.find(".//include[@name='Layout_Poster']//include[@content='Object_Layout_Image_Icon']"))
+                service = root.find("./include[@name='Layout_Streaming_Service_Poster']")
+                self.assertIsNotNone(service)
+                self.assertEqual(service.findtext(".//control[@type='label']/label"), '$INFO[ListItem.Label]')
+                self.assertEqual(env['streaming_poster_layout'](result, None), result)
+
     def test_legacy_widget_keeps_selection_and_adds_ready_and_busy_states(self):
         result = transform(widget(SELECTED), SELECTED)
         root = ET.fromstring('<root>' + result + '</root>')

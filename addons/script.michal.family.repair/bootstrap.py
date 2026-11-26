@@ -22,6 +22,7 @@ MIN_SKIN = (3, 5, 4)
 JURIAL_REPO = 'repository.jurialmunkey'
 YAWSP = 'plugin.video.yawsp'
 TRAKT = 'script.trakt'
+REPOSITORY_INSTALL_TIMEOUT = 180
 UPSTREAM_ZIPS = {
     JURIAL_REPO: (
         'https://jurialmunkey.github.io/repository.jurialmunkey/repository.jurialmunkey-3.6.zip',
@@ -45,14 +46,16 @@ def addon_details(addon):
         return {}
 
 
-def wait_for(check, timeout):
+def wait_for(check, timeout, pending=None):
     monitor = xbmc.Monitor()
     deadline = time.monotonic() + timeout
     while True:
         value = check()
         if value:
             return value
-        if time.monotonic() >= deadline or monitor.waitForAbort(0.5):
+        if time.monotonic() >= deadline and not (pending and pending()):
+            return None
+        if monitor.waitForAbort(0.5):
             return None
 
 
@@ -132,18 +135,32 @@ def available(addon):
     return any(item['addonid'] == addon for item in result.get('addons', []))
 
 
+def wait_for_repository_addon(addon):
+    if available(addon):
+        return
+    notify('Načítám repozitáře Kodi…')
+    xbmc.executebuiltin('UpdateAddonRepos')
+    if not wait_for(lambda: available(addon), 45):
+        raise RuntimeError('Repozitáře Kodi zatím nenabízejí ' + addon + '. Zkontroluj připojení a instalaci spusť znovu.')
+
+
+def native_install_pending():
+    return (xbmc.getCondVisibility('Window.IsVisible(yesnodialog)')
+            or xbmc.getCondVisibility('Window.IsVisible(progressdialog)'))
+
+
 def install_from_repo(addon):
     if enable_installed(addon):
         return
-    if not available(addon):
-        notify('Načítám repozitáře Kodi…')
-        xbmc.executebuiltin('UpdateAddonRepos')
-        if not wait_for(lambda: available(addon), 45):
-            raise RuntimeError('Repozitáře Kodi zatím nenabízejí ' + addon + '. Zkontroluj připojení a instalaci spusť znovu.')
-    notify('Připravuji ' + addon)
-    xbmc.executebuiltin('InstallAddon(' + addon + ')', True)
-    if not enable_installed(addon):
-        raise RuntimeError('Kodi nedokončilo instalaci ' + addon + '. Při opakování potvrď jeho instalaci v Kodi.')
+    wait_for_repository_addon(addon)
+    name = 'Arctic Fuse 3' if addon == SKIN else addon
+    notify('Pokud se Kodi zeptá, potvrď instalaci: ' + name)
+    xbmc.executebuiltin('InstallAddon(' + addon + ')')
+    # The built-in can return while Kodi is asking for confirmation or
+    # installing dependencies. Kodi owns these dialogs and their timeouts.
+    if not wait_for(lambda: enable_installed(addon), REPOSITORY_INSTALL_TIMEOUT, native_install_pending):
+        raise RuntimeError('Kodi nedokončilo instalaci ' + name + '. '
+                           'Při opakování potvrď jeho instalaci v Kodi.')
 
 
 def focus_skin_confirmation():
@@ -257,6 +274,10 @@ def prepare():
     if not addon_details(SKIN):
         maintenance.set_setting('addons.updatemode', 1, changes)
         install_upstream_zip(JURIAL_REPO)
+        # The Arctic repository can finish refreshing before Kodi's own
+        # repository, which provides required dependencies for the skin.
+        if not addon_details('script.module.requests'):
+            wait_for_repository_addon('script.module.requests')
         install_from_repo(SKIN)
     else:
         enable_installed(SKIN)
@@ -278,9 +299,14 @@ def prepare():
     if xbmc.getSkinDir() != SKIN:
         maintenance.confirmation_skin_patch()
         notify('Potvrď změnu vzhledu na Arctic Fuse 3.')
-        if not maintenance.rpc('Settings.SetSettingValue', {'setting': 'lookandfeel.skin', 'value': SKIN}):
-            raise RuntimeError('Kodi nedokázalo přepnout na Arctic Fuse 3.')
-        wait_for_skin_confirmation()
+        preview = 'Family.Setup.SkinPreview'
+        maintenance.HOME.setProperty(preview, 'true')
+        try:
+            if not maintenance.rpc('Settings.SetSettingValue', {'setting': 'lookandfeel.skin', 'value': SKIN}):
+                raise RuntimeError('Kodi nedokázalo přepnout na Arctic Fuse 3.')
+            wait_for_skin_confirmation()
+        finally:
+            maintenance.HOME.clearProperty(preview)
         xbmc.executebuiltin('ActivateWindow(Home)', True)
 
 

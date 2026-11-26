@@ -154,7 +154,54 @@ class BootstrapTests(unittest.TestCase):
     def test_native_repository_installer_completes(self):
         self.setup.install_from_repo('script.trakt')
         self.assertTrue(self.installed['script.trakt']['enabled'])
-        self.xbmc.executebuiltin.assert_called_with('InstallAddon(script.trakt)', True)
+        self.xbmc.executebuiltin.assert_called_with('InstallAddon(script.trakt)')
+
+    def test_native_install_waits_for_confirmation_and_skin_registration(self):
+        skin = self.setup.SKIN
+        self.setup.available = Mock(return_value=True)
+        elapsed = [0]
+        def wait(seconds):
+            elapsed[0] += seconds
+            # The user confirms at 6s, and Kodi publishes the add-on only
+            # after its dependencies have finished downloading.
+            if elapsed[0] == 21:
+                self.installed[skin] = {'enabled': False, 'version': '3.5.10'}
+            return False
+        self.xbmc.Monitor = lambda: types.SimpleNamespace(waitForAbort=wait)
+        with patch.object(self.setup.time, 'monotonic', side_effect=lambda: elapsed[0]):
+            self.setup.install_from_repo(skin)
+        self.assertGreaterEqual(elapsed[0], 21)
+        self.assertTrue(self.installed[skin]['enabled'])
+        self.xbmc.executebuiltin.assert_called_once_with('InstallAddon(' + skin + ')')
+
+    def test_native_install_that_never_registers_has_a_bounded_wait(self):
+        self.setup.available = Mock(return_value=True)
+        elapsed = [0]
+        self.xbmc.Monitor = lambda: types.SimpleNamespace(
+            waitForAbort=lambda seconds: elapsed.__setitem__(0, elapsed[0] + seconds) or False)
+        with patch.object(self.setup.time, 'monotonic', side_effect=lambda: elapsed[0]):
+            with self.assertRaisesRegex(RuntimeError, 'Arctic Fuse 3'):
+                self.setup.install_from_repo(self.setup.SKIN)
+        self.assertEqual(elapsed[0], self.setup.REPOSITORY_INSTALL_TIMEOUT)
+
+    def test_slow_native_download_can_finish_after_registration_deadline(self):
+        skin = self.setup.SKIN
+        self.setup.available = Mock(return_value=True)
+        elapsed = [0]
+        complete_at = self.setup.REPOSITORY_INSTALL_TIMEOUT + 10
+        self.xbmc.getCondVisibility = lambda condition: (
+            condition == 'Window.IsVisible(progressdialog)' and elapsed[0] < complete_at)
+
+        def wait(seconds):
+            elapsed[0] += seconds
+            if elapsed[0] == complete_at:
+                self.installed[skin] = {'enabled': True, 'version': '3.5.10'}
+            return False
+
+        self.xbmc.Monitor = lambda: types.SimpleNamespace(waitForAbort=wait)
+        with patch.object(self.setup.time, 'monotonic', side_effect=lambda: elapsed[0]):
+            self.setup.install_from_repo(skin)
+        self.assertEqual(elapsed[0], complete_at)
 
     def test_declined_native_install_stops_with_retry_message(self):
         self.xbmc.executebuiltin.side_effect = None
@@ -162,16 +209,29 @@ class BootstrapTests(unittest.TestCase):
             self.setup.install_from_repo('script.trakt')
 
     def test_fresh_prepare_installs_all_components_and_switches_skin(self):
+        catalog_ready = False
+
+        def wait_for_catalog(addon):
+            nonlocal catalog_ready
+            self.assertEqual(addon, 'script.module.requests')
+            catalog_ready = True
+
         def install(addon):
             self.installed[addon] = {'enabled': True, 'version': '1.0.0'}
             if addon == self.setup.SKIN:
+                self.assertTrue(catalog_ready)
                 self.installed[addon]['version'] = '3.5.4'
                 self.installed['plugin.video.themoviedb.helper'] = {'version': '6.22.4', 'enabled': True}
+        def confirm_preview():
+            self.assertEqual(self.properties['Family.Setup.SkinPreview'], 'true')
+
         with patch.object(self.setup, 'install_from_repo', side_effect=install) as repo:
             with patch.object(self.setup, 'install_upstream_zip', side_effect=install):
-                with patch.object(self.setup, 'wait_for_skin_confirmation') as confirmation:
-                    self.setup.prepare()
+                with patch.object(self.setup, 'wait_for_repository_addon', side_effect=wait_for_catalog):
+                    with patch.object(self.setup, 'wait_for_skin_confirmation', side_effect=confirm_preview) as confirmation:
+                        self.setup.prepare()
         confirmation.assert_called_once()
+        self.assertNotIn('Family.Setup.SkinPreview', self.properties)
         self.maintenance.confirmation_skin_patch.assert_called_once_with()
         self.assertEqual(self.skin, self.setup.SKIN)
         self.assertIn('resource.language.cs_cz', [call.args[0] for call in repo.call_args_list])

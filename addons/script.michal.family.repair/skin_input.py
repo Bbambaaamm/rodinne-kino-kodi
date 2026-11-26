@@ -240,7 +240,30 @@ def confirmation(original):
             ET.SubElement(button, direction, condition=available(first)).text = str(first)
             ET.SubElement(button, direction, condition='!' + available(first) + ' + ' + available(second)).text = str(second)
             ET.SubElement(button, direction, condition='!' + available(first) + ' + !' + available(second)).text = str(control_id)
-    ET.indent(root, space='    ')
+    # Kodi 21 on Windows can embed Python 3.8, where indent() is unavailable.
+    if hasattr(ET, 'indent'):
+        ET.indent(root, space='    ')
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' + ET.tostring(root, encoding='unicode') + '\n'
+
+
+def defer_preview_startup(original):
+    """Keep Arctic's first-run reloads and splash behind Kodi's keep dialog."""
+    guard = 'String.IsEmpty(Window(Home).Property(Family.Setup.SkinPreview))'
+    root = ET.fromstring(original)
+    deferred_includes = {'Action_BuildViews', 'Action_MigrateSettings',
+                         'Action_BuildShortcuts_OnLoad', 'Hub_Onload'}
+    nodes = [node for node in root.findall('include')
+             if (node.get('content') or (node.text or '').strip()) in deferred_includes]
+    nodes.extend(node for node in root.findall('onload')
+                 if (node.text or '').startswith(('AlarmClock(reloadskin,', 'AlarmClock(setupwizardopen,')))
+    changed = False
+    for node in nodes:
+        condition = node.get('condition', '')
+        if guard not in condition:
+            node.set('condition', f'[{condition}] + {guard}' if condition else guard)
+            changed = True
+    if not changed:
+        return original
     return '<?xml version="1.0" encoding="UTF-8"?>\n' + ET.tostring(root, encoding='unicode') + '\n'
 
 

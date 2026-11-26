@@ -457,23 +457,26 @@ def search_patch():
 def confirmation_skin_patch():
     # Prepare the target skin before Kodi loads its keep/revert dialog.
     folder = local_path(xbmcvfs.translatePath(xbmcaddon.Addon('skin.arctic.fuse.3').getAddonInfo('path')))
-    name = 'Dialog_DialogConfirm.xml'
-    path = os.path.join(folder, '1080i', name)
-    with open(path, encoding='utf-8') as source:
-        original = source.read()
-    updated = skin_input.confirmation(original)
-    if updated == original:
-        return False
     backup = search_skin_backup()
-    os.makedirs(backup, exist_ok=True)
-    previous = os.path.join(backup, name)
-    if not os.path.isfile(previous):
-        shutil.copyfile(path, previous)
-    temporary = path + '.family-new'
-    with open(temporary, 'w', encoding='utf-8') as target:
-        target.write(updated)
-    os.replace(temporary, path)
-    return True
+    changed = False
+    for name, transform in (('Dialog_DialogConfirm.xml', skin_input.confirmation),
+                            ('Home.xml', skin_input.defer_preview_startup)):
+        path = os.path.join(folder, '1080i', name)
+        with open(path, encoding='utf-8') as source:
+            original = source.read()
+        updated = transform(original)
+        if updated == original:
+            continue
+        os.makedirs(backup, exist_ok=True)
+        previous = os.path.join(backup, name)
+        if not os.path.isfile(previous):
+            shutil.copyfile(path, previous)
+        temporary = path + '.family-new'
+        with open(temporary, 'w', encoding='utf-8') as target:
+            target.write(updated)
+        os.replace(temporary, path)
+        changed = True
+    return changed
 
 
 def input_skin_patch():
@@ -734,8 +737,12 @@ def streaming_poster_layout(original, backup):
         original = original.replace(stock, clean, 1)
         stock = clean
     poster = stock.replace('name="Layout_Poster"', 'name="Layout_Streaming_Service_Poster"', 1)
-    start = poster.index('                    <include content="Object_Layout_Image_Icon">')
-    end = poster.index('                    </include>', start) + len('                    </include>')
+    artwork = list(re.finditer(
+        r'(?ms)^(?P<indent>[ \t]+)<include content="Object_Layout_Image_Icon">.*?'
+        r'^(?P=indent)</include>', poster))
+    if len(artwork) != 1:
+        raise RuntimeError('Arctic Fuse poster artwork layout has changed')
+    start, end = artwork[0].span()
     service_art = """                    <control type="image">
                         <texture colordiffuse="FF171B26" border="20">common/box.png</texture>
                     </control>
@@ -1641,7 +1648,7 @@ def rollback():
     elif os.path.isfile(translated):
         os.remove(translated)
     for name in ('Custom_1105_Search.xml', 'Includes_Home.xml', 'Includes_Info.xml',
-                 'Includes_Layouts.xml', 'Dialog_DialogConfirm.xml'):
+                 'Includes_Layouts.xml', 'Dialog_DialogConfirm.xml', 'Home.xml'):
         old_search = os.path.join(search_skin_backup(), name)
         if not os.path.isfile(old_search) and name == 'Custom_1105_Search.xml':
             old_search = os.path.join(baseline, 'skin.arctic.fuse.3', '1080i', name)
