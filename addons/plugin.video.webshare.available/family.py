@@ -23,6 +23,7 @@ import core
 from matching import attributes, episode_source_titles, normal, rank_source, source_label, valid_source
 from matching import source_attributes, track_lines, source_summary
 from streams import HTTPReader, inspect as inspect_streams
+from tracking import clear_movie_trakt_ids, publish_movie_trakt_ids
 
 ID = 'plugin.video.webshare.available'
 ADDON = xbmcaddon.Addon(ID)
@@ -649,8 +650,18 @@ def deliver_resolved(prepared):
     li.setProperty('IsPlayable', 'true')
     li.setMimeType({'.mp4': 'video/mp4', '.m4v': 'video/mp4', '.avi': 'video/x-msvideo', '.ts': 'video/mp2t', '.m2ts': 'video/mp2t', '.webm': 'video/webm'}.get(prepared.get('source', {}).get('extension'), 'video/x-matroska'))
     li.setContentLookup(False)
-    HOME.setProperty('Family.ManagedStartAt', str(time.time()))
-    xbmcplugin.setResolvedUrl(HANDLE, True, li)
+    started_at = str(time.time())
+    HOME.setProperty('Family.ManagedStartAt', started_at)
+    # Kodi's Trakt service reads this property when a stream starts outside
+    # the local library. The unique IDs on the ListItem alone are insufficient.
+    publish_movie_trakt_ids(prepared['record']['item'])
+    try:
+        xbmcplugin.setResolvedUrl(HANDLE, True, li)
+    except RuntimeError:
+        if HOME.getProperty('Family.ManagedStartAt') == started_at:
+            clear_movie_trakt_ids()
+            HOME.clearProperty('Family.ManagedStartAt')
+        raise
     tag = li.getVideoInfoTag()
     HOME.setProperty('Family.LastResolve', json.dumps({'stage': 'resolved', 'handle': HANDLE, 'resume': prepared.get('resume', 0), 'tag_type': tag.getMediaType(), 'tag_title': tag.getTitle()}))
 

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "candidate": "availability-progressive-private-20261123",
+  "candidate": "1.8.23-trakt-movie-homatics",
   "device": "Homatics Box R 4K Plus / Kodi 21.2",
   "result": "pass",
   "paging": {"initial_items": 20, "increment_items": 20},
@@ -10,8 +10,8 @@
     "addons/plugin.video.webshare.available/autopaging.py": "3d5e1716af7cd0aa57fd601fffd5d4987afadbc8221255a39b0c2d3c5faf0356",
     "addons/plugin.video.webshare.available/searching.py": "482c51ec3faa362a394d51c96b3cae3182dd03042562e76a47f79555ceb35431",
     "addons/plugin.video.webshare.available/discovery.py": "d28a40e22e8be23b4c7faf45dcb960a36997198ed19784af8fca0a92066c152e",
-    "addons/plugin.video.webshare.available/family.py": "d3541007d112dde07d18f37d561a800722bf20fadc6d7544ce8889b9f67f6111",
-    "addons/plugin.video.webshare.available/tracking.py": "c4610bf7d3a4f94303044de625a6eb16fc6a4c7d6d1b087de94a80f550292246"
+    "addons/plugin.video.webshare.available/family.py": "a00ad79bed54dae8b2924e328c0db247527b7f93ed2cb774633c527addd96e60",
+    "addons/plugin.video.webshare.available/tracking.py": "5a9c3929a9f53eedf1ffd7b1db0efa3cb35ffe330a61c40f2cdc48c4a7626ec2"
   },
   "measured": {
     "remote_focus_ms": 63.0,
@@ -41,7 +41,18 @@
     "rings_of_power_s03e04_visible": true,
     "back_selection_preserved": true,
     "playback_started_and_stopped": true,
-    "no_crash_or_freeze": true
+    "no_crash_or_freeze": true,
+    "movie_tmdb_id_available_when_playback_starts": true,
+    "movie_and_episode_added_to_trakt_history": true,
+    "movie_tmdb_id_cleared_before_episode": true
+  },
+  "latency_baseline": "availability-progressive-private-20261123",
+  "release_validation": {
+    "installation": "ZIP zkopírovaný do profilu Kodi, instalace 1.8.23 a automatické použití doplňku 0.9.25 na Domů",
+    "movie_tmdb_id": 1830,
+    "episode": {"show_tmdb_id": 918, "season": 1, "episode": 24},
+    "readback_seconds": {"movie_history": 2.074, "combined_history": 1.673, "next_episodes": 0.727},
+    "scope": "Jeden nový filmový a jeden epizodní záznam v historii Traktu bez ručního zápisu. Měření v oddílu measured pocházejí z uvedené základní verze. Přímý výběr ZIPu z místního HTTP zdroje dvakrát ukončil spojení s Kodi. Instalace stejného ZIPu z místního souboru uspěla."
   },
   "notes": "Technický protokol bez účtů, tokenů a adres videí. Milníky zůstávají 20 a +20; potvrzené karty se při pomalejším Webshare zobrazují průběžně v krátkých dávkách. Kodi bylo před každou skupinou měření probuzeno simulací šipky; aktivní spořič se nehodnotí jako pád. Nabídka zdrojů: první načtení 3,565 s, opakované načtení 0,129 s. Veřejné vydání vyžaduje výslovné schválení."
 }

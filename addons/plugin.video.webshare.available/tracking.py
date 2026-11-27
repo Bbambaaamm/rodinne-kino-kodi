@@ -11,6 +11,26 @@ import xbmcvfs
 HOME = xbmcgui.Window(10000)
 PROFILE = xbmcvfs.translatePath(xbmcaddon.Addon('plugin.video.webshare.available').getAddonInfo('profile'))
 
+TRAKT_IDS = 'script.trakt.ids'
+MOVIE_TRAKT_IDS = 'Family.Trakt.MovieIds'
+
+
+def clear_movie_trakt_ids():
+    owned = HOME.getProperty(MOVIE_TRAKT_IDS)
+    if owned:
+        if HOME.getProperty(TRAKT_IDS) == owned:
+            HOME.clearProperty(TRAKT_IDS)
+        HOME.clearProperty(MOVIE_TRAKT_IDS)
+
+
+def publish_movie_trakt_ids(item):
+    clear_movie_trakt_ids()
+    if item['kind'] == 'movie':
+        ids = json.dumps({'tmdb': item['tmdb_id']})
+        HOME.setProperty(MOVIE_TRAKT_IDS, ids)
+        HOME.setProperty(TRAKT_IDS, ids)
+
+
 def write_json(path, value):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     temp = path + '.new'
@@ -123,6 +143,13 @@ class ResumePlayer:
         # Track playback through the player API without native Python player
         # callbacks, including during service shutdown and app restarts.
         pending = HOME.getProperty('Family.ManagedStartAt')
+        if not self.context and not self.isPlayingVideo():
+            try:
+                expired = not pending or time.time() - float(pending) >= 120
+            except ValueError:
+                expired = True
+            if expired:
+                clear_movie_trakt_ids()
         if not self.context and pending and self.isPlayingVideo():
             try:
                 candidate = json.loads(HOME.getProperty('Family.PlaybackContext'))
